@@ -2,19 +2,47 @@
   "name": "career-explorer",
   "version": "1.0.0",
   "description": "This project is a tool for exploring career information using the O*NET database.",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
+  "proxy": "https://services.onetcenter.org",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "axios": "^0.21.1",
+    "babel-loader": "^8.1.0",
+    "dotenv": "^16.4.5",
+    "http-proxy-middleware": "^3.0.0",
+    "install": "^0.13.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^4.0.3",
+    "web-vitals": "^1.1.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }
