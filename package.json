@@ -4,8 +4,8 @@
   "description": "This project is a tool for exploring career information using the O*NET database.",
   "main": "src/index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -17,12 +17,14 @@
     "axios": "^0.21.1",
     "babel-loader": "^8.1.0",
     "dotenv": "^16.4.5",
+    "file-saver": "^2.0.5",
     "http-proxy-middleware": "^3.0.0",
     "install": "^0.13.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "^4.0.3",
-    "web-vitals": "^1.1.2"
+    "web-vitals": "^1.1.2",
+    "xlsx": "^0.18.5"
   },
   "eslintConfig": {
     "extends": [

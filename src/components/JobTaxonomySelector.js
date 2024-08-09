@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 
 const JobTaxonomySelector = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +33,7 @@ const JobTaxonomySelector = () => {
     setIsLoading(true);
     try {
       const details = await getOccupationDetails(occupation.code);
+      console.log('Occupation details received:', details);
       setSelectedOccupation({ ...occupation, ...details });
     } catch (error) {
       console.error('Error fetching occupation details:', error);
@@ -45,7 +48,7 @@ const JobTaxonomySelector = () => {
       return (
         <>
           <h3>{title}</h3>
-          <p>No {title.toLowerCase()} information available for this occupation.</p>
+          <p>No {title.toLowerCase()} information is currently available for this occupation.</p>
         </>
       );
     }
@@ -53,17 +56,12 @@ const JobTaxonomySelector = () => {
       <>
         <h3>{title}</h3>
         <ul>
-          {items.map((item, index) => {
-            if (typeof item === 'object') {
-              return (
-                <li key={index}>
-                  <strong>{item.name || item.element_name || item.example}</strong>: {item.description}
-                  {item.score && <span> (Importance: {item.score.value})</span>}
-                </li>
-              );
-            }
-            return <li key={index}>{item}</li>;
-          })}
+          {items.map((item, index) => (
+            <li key={index}>
+              <strong>{item.name || item.title}</strong>: {item.description}
+              {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
+            </li>
+          ))}
         </ul>
       </>
     );
@@ -74,20 +72,45 @@ const JobTaxonomySelector = () => {
       <div>
         <h3>Additional Details</h3>
         <p><strong>Description:</strong> {details.description}</p>
-        <p><strong>Job Zone:</strong> {details.job_zone}</p>
+        <p><strong>O*NET-SOC Code:</strong> {details.code}</p>
         <h4>Sample Job Titles:</h4>
         <ul>
-          {details.sample_of_reported_job_titles.title.map((title, index) => (
+          {details.sample_of_reported_job_titles?.title?.map((title, index) => (
             <li key={index}>{title}</li>
           ))}
         </ul>
-        <p><strong>Updated:</strong> {details.updated.year}</p>
+        <p><strong>Updated:</strong> {details.updated?.year}</p>
       </div>
     );
   };
 
+  const downloadExcel = () => {
+    if (!selectedOccupation) return;
+
+    const data = [
+      { title: 'Tasks', items: selectedOccupation.tasks },
+      { title: 'Knowledge', items: selectedOccupation.knowledge },
+      { title: 'Skills', items: selectedOccupation.skills },
+      { title: 'Abilities', items: selectedOccupation.abilities },
+      { title: 'Technologies', items: selectedOccupation.technologies }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet([]);
+    data.forEach(section => {
+      XLSX.utils.sheet_add_json(worksheet, [{ title: section.title }], { skipHeader: true, origin: -1 });
+      XLSX.utils.sheet_add_json(worksheet, section.items, { origin: -1 });
+    });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
+  };
+
   return (
     <div>
+      <h1>O*NET Career Explorer</h1>
       <input 
         type="text" 
         value={searchTerm} 
@@ -109,10 +132,13 @@ const JobTaxonomySelector = () => {
       {selectedOccupation && (
         <div>
           <h2>{selectedOccupation.title}</h2>
+          {renderAdditionalDetails(selectedOccupation)}
           {renderList('Tasks', selectedOccupation.tasks)}
+          {renderList('Knowledge', selectedOccupation.knowledge)}
           {renderList('Skills', selectedOccupation.skills)}
+          {renderList('Abilities', selectedOccupation.abilities)}
           {renderList('Technologies', selectedOccupation.technologies)}
-          {renderAdditionalDetails(selectedOccupation.details)}
+          <button onClick={downloadExcel}>Download as Excel</button>
         </div>
       )}
     </div>
