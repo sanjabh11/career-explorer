@@ -4,6 +4,8 @@
   "description": "This project is a tool for exploring career information using the O*NET database.",
   "main": "src/index.js",
   "scripts": {
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "react-scripts --openssl-legacy-provider build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
