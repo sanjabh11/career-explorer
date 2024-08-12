@@ -1,6 +1,4 @@
-[[
-redirects
-]]
+[[redirects]]
   from = "/ws/*"
   to = "https://services.onetcenter.org/ws/:splat"
   status = 200
