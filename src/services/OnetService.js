@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/ws',
+  baseURL: 'https://services.onetcenter.org/ws',
 });
 
 api.interceptors.request.use(config => {
