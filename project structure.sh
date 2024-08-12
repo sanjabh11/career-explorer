@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
  
 # Create src directory and its subdirectories
