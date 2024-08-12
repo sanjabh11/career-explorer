@@ -22,17 +22,7 @@
        console.error('Error searching occupations:', error);
        throw error;
      }
-   };
-
-   export const searchOccupations = async (keyword) => {
-     try {
-       const response = await api.get(`/online/search?keyword=${encodeURIComponent(keyword)}`);
-       return response.data.occupation || [];
-     } catch (error) {
-       console.error('Error searching occupations:', error);
-       throw error;
-     }
-   };
+   }; 
 
 export const getOccupationDetails = async (code) => {
   try {
