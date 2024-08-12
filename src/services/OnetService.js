@@ -1,18 +1,18 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'https://services.onetcenter.org/ws',
-});
+      const api = axios.create({
+     baseURL: '/api/ws',
+   });
 
-api.interceptors.request.use(config => {
-  const username = process.env.REACT_APP_ONET_USERNAME;
-  const password = process.env.REACT_APP_ONET_PASSWORD;
-  config.auth = {
-    username: username,
-    password: password
-  };
-  return config;
-});
+   api.interceptors.request.use(config => {
+     const username = process.env.REACT_APP_ONET_USERNAME;
+     const password = process.env.REACT_APP_ONET_PASSWORD;
+     config.auth = {
+       username: username,
+       password: password
+     };
+     return config;
+   });
 
      const processElementData = (data) => {
      if (!data) return [];

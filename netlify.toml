@@ -1,6 +1,6 @@
-[[redirects]]
-  from = "/ws/*"
-  to = "https://services.onetcenter.org/ws/:splat"
-  status = 200
-  force = true
-  headers = {X-From = "Netlify"}
+   [[redirects]]
+     from = "/api/*"
+     to = "https://services.onetcenter.org/:splat"
+     status = 200
+     force = true
+     headers = {Authorization = ":Authorization"}
