@@ -1,28 +1,38 @@
-import axios from 'axios';
+   import axios from 'axios';
 
-const api = axios.create({
-  baseURL: '/api/ws',
-});
+   const api = axios.create({
+     baseURL: '/api/ws',
+   });
 
-api.interceptors.request.use(config => {
-  const username = process.env.REACT_APP_ONET_USERNAME;
-  const password = process.env.REACT_APP_ONET_PASSWORD;
-  config.auth = {
-    username: username,
-    password: password
-  };
-  return config;
-});
+   api.interceptors.request.use(config => {
+     const username = process.env.REACT_APP_ONET_USERNAME;
+     const password = process.env.REACT_APP_ONET_PASSWORD;
+     config.auth = {
+       username: username,
+       password: password
+     };
+     return config;
+   });
 
-export const searchOccupations = async (keyword) => {
-  try {
-    const response = await api.get(`/online/search?keyword=${encodeURIComponent(keyword)}`);
-    return response.data.occupation || [];
-  } catch (error) {
-    console.error('Error searching occupations:', error);
-    throw error;
-  }
-};
+   export const searchOccupations = async (keyword) => {
+     try {
+       const response = await api.get(`/online/search?keyword=${encodeURIComponent(keyword)}`);
+       return response.data.occupation || [];
+     } catch (error) {
+       console.error('Error searching occupations:', error);
+       throw error;
+     }
+   };
+
+   export const searchOccupations = async (keyword) => {
+     try {
+       const response = await api.get(`/online/search?keyword=${encodeURIComponent(keyword)}`);
+       return response.data.occupation || [];
+     } catch (error) {
+       console.error('Error searching occupations:', error);
+       throw error;
+     }
+   };
 
 export const getOccupationDetails = async (code) => {
   try {
