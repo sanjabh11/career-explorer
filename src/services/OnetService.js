@@ -65,7 +65,7 @@ export const searchOccupations = async (keyword) => {
 
 export const getOccupationDetails = async (code) => {
   try {
-    const formattedCode = code.includes('-') ? code : code.replace(/^(\d{2})(\d{4})$/, '\$1-\$2.00');
+       const formattedCode = code.includes('-') ? code : code.replace(/^(\d{2})(\d{4})$/, '\$1-\$2.00');
     console.log('Fetching details for occupation code:', formattedCode);
 
     const details = await api.get(`/online/occupations/${formattedCode}`);
