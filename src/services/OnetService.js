@@ -1,26 +1,26 @@
-       import axios from 'axios';
+import axios from 'axios';
 
-   const api = axios.create({
-     baseURL: process.env.REACT_APP_API_BASE_URL || '',
-   });
-
-   export const searchOccupations = async (keyword) => {
-     try {
-       console.log('Searching occupations with keyword:', keyword);
-       const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
-       console.log('Search Occupations Response:', response.data);
-
-       return response.data.occupations || [];
-     } catch (error) {
-       console.error('Error searching occupations:', error.response ? error.response.data : error.message);
-       throw error;
-     }
-   };
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_BASE_URL || '',
+});
 
 api.interceptors.request.use(config => {
   console.log('API Request Config:', config);
   return config;
 });
+
+export const searchOccupations = async (keyword) => {
+  try {
+    console.log('Searching occupations with keyword:', keyword);
+    const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
+    console.log('Search Occupations Response:', response.data);
+
+    return response.data.occupations || [];
+  } catch (error) {
+    console.error('Error searching occupations:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 const processElementData = (data) => {
   if (!data) return [];
@@ -60,15 +60,6 @@ const processElementData = (data) => {
   console.warn('Unhandled data structure:', data);
   return [];
 };
-
-       
-
-       return response.data.occupations || [];
-     } catch (error) {
-       console.error('Error searching occupations:', error.response ? error.response.data : error.message);
-       throw error;
-     }
-   };
 
 export const getOccupationDetails = async (code) => {
   try {
