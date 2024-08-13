@@ -40,7 +40,12 @@ const apoCategoriesPercentages = {
 };
 
 const calculateAPO = (item, category) => {
-  const itemName = item.name || item.title || '';
+  if (!item || !item.name) {
+    console.warn(`Invalid item in category ${category}:`, item);
+    return 0;
+  }
+
+  const itemName = item.name || '';
   const itemDescription = item.description || '';
   const fullText = `${itemName} ${itemDescription}`.toLowerCase();
 
@@ -133,39 +138,39 @@ const JobTaxonomySelector = () => {
   };
 
   const renderList = (title, items, category) => {
-    if (!items || items.length === 0) {
-      return (
-        <Box my={2}>
-          <Typography variant="h6">{title}</Typography>
-          <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
-        </Box>
-      );
-    }
-    const averageAPO = getAverageAPO(items, category);
+  if (!items || items.length === 0) {
     return (
       <Box my={2}>
         <Typography variant="h6">{title}</Typography>
-        <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
-        <List>
-          {items.map((item, index) => (
-            <ListItem key={index}>
-              <ListItemText
-                primary={<strong>{item.name || item.title}</strong>}
-                secondary={
-                  <>
-                    {item.description}
-                    {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
-                    <br />
-                    APO: {calculateAPO(item, category).toFixed(2)}%
-                  </>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
+        <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
       </Box>
     );
-  };
+  }
+  const averageAPO = getAverageAPO(items, category);
+  return (
+    <Box my={2}>
+      <Typography variant="h6">{title}</Typography>
+      <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
+      <List>
+        {items.map((item, index) => (
+          <ListItem key={index}>
+            <ListItemText
+              primary={<strong>{item.name || 'Unnamed Item'}</strong>}
+              secondary={
+                <>
+                  {item.description || 'No description available'}
+                  {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
+                  <br />
+                  APO: {calculateAPO(item, category).toFixed(2)}%
+                </>
+              }
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+};
 
   const renderAdditionalDetails = (details) => {
     return (

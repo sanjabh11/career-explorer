@@ -32,6 +32,8 @@ export const getOccupationDetails = async (occupationCode) => {
       technologies: processElementData(response.data.technology_skills)
     };
 
+    console.log('Processed Occupation Details:', processedData);
+
     return processedData;
   } catch (error) {
     console.error('Error fetching occupation details:', error.response ? error.response.data : error.message);
