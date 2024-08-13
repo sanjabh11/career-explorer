@@ -9,13 +9,12 @@
      console.log('Username:', process.env.REACT_APP_ONET_USERNAME);
      console.log('Password:', process.env.REACT_APP_ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
+     const auth = Buffer.from(`${process.env.REACT_APP_ONET_USERNAME}:${process.env.REACT_APP_ONET_PASSWORD}`).toString('base64');
+
      try {
        const response = await axios.get(url, {
-         auth: {
-           username: process.env.REACT_APP_ONET_USERNAME,
-           password: process.env.REACT_APP_ONET_PASSWORD
-         },
          headers: {
+           'Authorization': `Basic ${auth}`,
            'Accept': 'application/json'
          }
        });

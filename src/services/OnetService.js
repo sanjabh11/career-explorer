@@ -1,6 +1,9 @@
-import axios from 'axios';
+ import axios from 'axios';
+   import { parseString } from 'xml2js';
 
-const api = axios.create();
+   const api = axios.create({
+     baseURL: process.env.REACT_APP_API_BASE_URL || '',
+   });
 
 api.interceptors.request.use(config => {
   console.log('API Request Config:', config);
@@ -51,6 +54,20 @@ const processElementData = (data) => {
        console.log('Searching occupations with keyword:', keyword);
        const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
        console.log('Search Occupations Response:', response.data);
+
+       // Check if the response is XML
+       if (typeof response.data === 'string' && response.data.trim().startsWith('<?xml')) {
+         return new Promise((resolve, reject) => {
+           parseString(response.data, (err, result) => {
+             if (err) {
+               reject(err);
+             } else {
+               resolve(result.occupations.occupation || []);
+             }
+           });
+         });
+       }
+
        return response.data.occupations || [];
      } catch (error) {
        console.error('Error searching occupations:', error.response ? error.response.data : error.message);
