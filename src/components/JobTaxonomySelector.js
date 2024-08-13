@@ -103,20 +103,20 @@ const JobTaxonomySelector = () => {
    };
 
   const handleOccupationSelect = async (occupation) => {
-    console.log('Selected occupation:', occupation);
-    setIsLoading(true);
-    setError(null);
-    try {
-      const details = await getOccupationDetails(occupation.code);
-      console.log('Occupation details received:', details);
-      setSelectedOccupation({ ...occupation, ...details });
-    } catch (error) {
-      console.error('Error fetching occupation details:', error);
-      setError('An error occurred while fetching occupation details. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  console.log('Selected occupation:', occupation);
+  setIsLoading(true);
+  setError(null);
+  try {
+    const details = await getOccupationDetails(occupation.code[0]);
+    console.log('Occupation details received:', details);
+    setSelectedOccupation({ ...occupation, ...details });
+  } catch (error) {
+    console.error('Error fetching occupation details:', error);
+    setError('An error occurred while fetching occupation details. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];

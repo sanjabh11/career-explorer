@@ -15,30 +15,47 @@ exports.handler = async function(event, context) {
     };
   }
 
-  const url = `https://services.onetcenter.org/ws/online/occupations/${encodeURIComponent(code)}/`;
-  
-  console.log('Requesting URL:', url);
-  console.log('Username:', process.env.ONET_USERNAME);
-  console.log('Password:', process.env.ONET_PASSWORD ? '[REDACTED]' : 'Not set');
+  const baseUrl = 'https://services.onetcenter.org/ws/online/occupations';
+  const endpoints = [
+    '',
+    '/details/tasks',
+    '/details/knowledge',
+    '/details/skills',
+    '/details/abilities',
+    '/details/technology_skills'
+  ];
 
   try {
-    const response = await axios.get(url, {
-      auth: {
-        username: process.env.ONET_USERNAME,
-        password: process.env.ONET_PASSWORD
-      },
-      headers: {
-        'Accept': 'application/xml'
+    const results = await Promise.all(endpoints.map(async (endpoint) => {
+      const url = `${baseUrl}/${code}${endpoint}`;
+      console.log('Requesting URL:', url);
+      
+      const response = await axios.get(url, {
+        auth: {
+          username: process.env.ONET_USERNAME,
+          password: process.env.ONET_PASSWORD
+        },
+        headers: {
+          'Accept': 'application/xml'
+        }
+      });
+
+      const xmlData = response.data;
+      const jsonData = await parseXml(xmlData);
+      return { endpoint, data: jsonData };
+    }));
+
+    const combinedData = results.reduce((acc, { endpoint, data }) => {
+      if (endpoint === '') {
+        acc.details = data.occupation;
+      } else {
+        const key = endpoint.split('/').pop();
+        acc[key] = data[Object.keys(data)[0]];
       }
-    });
-    
-    console.log('O*NET API Response Status:', response.status);
-    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
+      return acc;
+    }, {});
 
-    const xmlData = response.data;
-    const jsonData = await parseXml(xmlData);
-
-    console.log('Parsed JSON Data:', JSON.stringify(jsonData));
+    console.log('Combined Data:', JSON.stringify(combinedData, null, 2));
 
     return {
       statusCode: 200,
@@ -47,7 +64,7 @@ exports.handler = async function(event, context) {
         "Access-Control-Allow-Headers": "Content-Type",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(jsonData.occupation || {})
+      body: JSON.stringify(combinedData)
     };
   } catch (error) {
     console.error('Error in Netlify Function:', error.message);

@@ -23,7 +23,16 @@ export const getOccupationDetails = async (occupationCode) => {
     const response = await api.get(`/.netlify/functions/onet-details?code=${encodeURIComponent(occupationCode)}`);
     console.log('Occupation Details Response:', response.data);
 
-    return response.data;
+    const processedData = {
+      ...response.data.details,
+      tasks: processElementData(response.data.tasks),
+      knowledge: processElementData(response.data.knowledge),
+      skills: processElementData(response.data.skills),
+      abilities: processElementData(response.data.abilities),
+      technologies: processElementData(response.data.technology_skills)
+    };
+
+    return processedData;
   } catch (error) {
     console.error('Error fetching occupation details:', error.response ? error.response.data : error.message);
     throw error;
