@@ -1,80 +1,16 @@
-   import axios from 'axios';
+import axios from 'axios';
 
-   const api = axios.create({
-     baseURL: '/api/ws',
-   });
+const api = axios.create();
 
-   api.interceptors.request.use(config => {
-     const username = process.env.REACT_APP_ONET_USERNAME;
-     const password = process.env.REACT_APP_ONET_PASSWORD;
-     config.auth = {
-       username: username,
-       password: password
-     };
-     return config;
-   });
-
-   export const searchOccupations = async (keyword) => {
-     try {
-       const response = await api.get(`/online/search?keyword=${encodeURIComponent(keyword)}`);
-       return response.data.occupation || [];
-     } catch (error) {
-       console.error('Error searching occupations:', error);
-       throw error;
-     }
-   }; 
-
-export const getOccupationDetails = async (code) => {
-  try {
-    const formattedCode = code.includes('-') ? code : code.replace(/^(\d{2})(\d{4})$/, '\$1-\$2.00');
-    console.log('Fetching details for occupation code:', formattedCode);
-    const details = await api.get(`/online/occupations/${formattedCode}`);
-    
-    const fetchData = async (endpoint) => {
-      try {
-        const response = await api.get(endpoint);
-        console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
-        return response.data;
-      } catch (error) {
-        if (error.response && error.response.status === 422) {
-          console.warn(`No data available for ${endpoint}`);
-        } else {
-          console.error(`Error fetching ${endpoint}:`, error.response ? error.response.data : error.message);
-        }
-        return null;
-      }
-    };
-
-    const [tasks, knowledge, skills, abilities, technologies] = await Promise.all([
-      fetchData(`/online/occupations/${formattedCode}/details/tasks`),
-      fetchData(`/online/occupations/${formattedCode}/details/knowledge`),
-      fetchData(`/online/occupations/${formattedCode}/details/skills`),
-      fetchData(`/online/occupations/${formattedCode}/details/abilities`),
-      fetchData(`/online/occupations/${formattedCode}/details/technology_skills`)
-    ]);
-
-    console.log('Processed API Responses:', {
-      details: details.data,
-      tasks: processElementData(tasks),
-      knowledge: processElementData(knowledge),
-      skills: processElementData(skills),
-      abilities: processElementData(abilities),
-      technologies: processElementData(technologies)
-    });
-
-    return {
-      details: details.data,
-      tasks: processElementData(tasks) || [],
-      knowledge: processElementData(knowledge) || [],
-      skills: processElementData(skills) || [],
-      abilities: processElementData(abilities) || [],
-      technologies: processElementData(technologies) || []
-    };
-  } catch (error) {
-    console.error('Error fetching occupation details:', error);
-    throw error;
-  }
-};
+api.interceptors.request.use(config => {
+  const username = process.env.REACT_APP_ONET_USERNAME;
+  const password = process.env.REACT_APP_ONET_PASSWORD;
+  config.auth = {
+    username: username,
+    password: password
+  };
+  return config;
+});
 
 const processElementData = (data) => {
   if (!data) return [];
@@ -113,4 +49,67 @@ const processElementData = (data) => {
   
   console.warn('Unhandled data structure:', data);
   return [];
+};
+
+export const searchOccupations = async (keyword) => {
+  try {
+    const response = await api.get(`/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
+    return response.data.occupation || [];
+  } catch (error) {
+    console.error('Error searching occupations:', error);
+    throw error;
+  }
+};
+
+export const getOccupationDetails = async (code) => {
+  try {
+    const formattedCode = code.includes('-') ? code : code.replace(/^(\d{2})(\d{4})$/, '\$1-\$2.00');
+    console.log('Fetching details for occupation code:', formattedCode);
+
+    const details = await api.get(`/ws/online/occupations/${formattedCode}`);
+    
+    const fetchData = async (endpoint) => {
+      try {
+        const response = await api.get(endpoint);
+        console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.status === 422) {
+          console.warn(`No data available for ${endpoint}`);
+        } else {
+          console.error(`Error fetching ${endpoint}:`, error.response ? error.response.data : error.message);
+        }
+        return null;
+      }
+    };
+
+    const [tasks, knowledge, skills, abilities, technologies] = await Promise.all([
+      fetchData(`/ws/online/occupations/${formattedCode}/details/tasks`),
+      fetchData(`/ws/online/occupations/${formattedCode}/details/knowledge`),
+      fetchData(`/ws/online/occupations/${formattedCode}/details/skills`),
+      fetchData(`/ws/online/occupations/${formattedCode}/details/abilities`),
+      fetchData(`/ws/online/occupations/${formattedCode}/details/technology_skills`)
+    ]);
+
+    console.log('Processed API Responses:', {
+      details: details.data,
+      tasks: processElementData(tasks),
+      knowledge: processElementData(knowledge),
+      skills: processElementData(skills),
+      abilities: processElementData(abilities),
+      technologies: processElementData(technologies)
+    });
+
+    return {
+      details: details.data,
+      tasks: processElementData(tasks) || [],
+      knowledge: processElementData(knowledge) || [],
+      skills: processElementData(skills) || [],
+      abilities: processElementData(abilities) || [],
+      technologies: processElementData(technologies) || []
+    };
+  } catch (error) {
+    console.error('Error fetching occupation details:', error);
+    throw error;
+  }
 };
