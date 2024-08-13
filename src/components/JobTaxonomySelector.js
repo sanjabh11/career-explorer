@@ -1,67 +1,224 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box, Input } from '@mui/material';
+
+const apoCategoriesPercentages = {
+  tasks: {
+    "Analyzing Data": 65, "Preparing Reports": 55, "Coordinating Activities": 40,
+    "Evaluating Information": 35, "Developing Objectives": 25, "Communicating": 30,
+    "Monitoring Processes": 50, "Training": 35, "Problem Solving": 45,
+    "Updating Knowledge": 60, "Programming": 65, "Debugging": 55, "Testing": 50, "Documenting": 45
+  },
+  knowledge: {
+    "Administration and Management": 35, "Customer and Personal Service": 40,
+    "Engineering and Technology": 50, "Mathematics": 70, "English Language": 55,
+    "Computers and Electronics": 60, "Education and Training": 40, "Psychology": 30,
+    "Law and Government": 45, "Production and Processing": 55, "Design": 45, "Geography": 40
+  },
+  skills: {
+    "Active Listening": 35, "Critical Thinking": 40, "Reading Comprehension": 60,
+    "Speaking": 25, "Writing": 55, "Active Learning": 50, "Monitoring": 65,
+    "Social Perceptiveness": 20, "Time Management": 45, "Complex Problem Solving": 40,
+    "Programming": 65, "Systems Analysis": 55, "Quality Control Analysis": 50,
+    "Judgment and Decision Making": 45
+  },
+  abilities: {
+    "Oral Comprehension": 40, "Written Comprehension": 65, "Oral Expression": 25,
+    "Written Expression": 55, "Fluency of Ideas": 35, "Originality": 30,
+    "Problem Sensitivity": 55, "Deductive Reasoning": 50, "Inductive Reasoning": 60,
+    "Information Ordering": 70, "Near Vision": 40, "Speech Recognition": 35
+  },
+  technologies: {
+    "Development Environment": 55, "Presentation Software": 50,
+    "Object Oriented Development": 60, "Web Platform Development": 65,
+    "Database Management": 70, "Operating System": 45,
+    "Data Base User Interface": 55, "Compiler and Decompiler": 50,
+    "Enterprise Resource Planning": 60, "Enterprise Application Integration": 65
+  }
+};
+
+const calculateAPO = (item, category) => {
+  const itemName = item.name || item.title || '';
+  const itemDescription = item.description || '';
+  const fullText = `${itemName} ${itemDescription}`.toLowerCase();
+
+  console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
+  console.log(`Full text: "${fullText}"`);
+
+  for (const [key, value] of Object.entries(apoCategoriesPercentages[category])) {
+    if (fullText.includes(key.toLowerCase())) {
+      console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
+      return value;
+    }
+  }
+
+  const averageCategoryAPO = Object.values(apoCategoriesPercentages[category]).reduce((a, b) => a + b, 0) / Object.values(apoCategoriesPercentages[category]).length;
+  console.log(`No exact match found for "${itemName}" in category "${category}". Using average category APO: ${averageCategoryAPO.toFixed(2)}%`);
+  return averageCategoryAPO;
+};
+
+const getAverageAPO = (items, category) => {
+  if (!items || items.length === 0) {
+    console.log(`No items found for category: ${category}`);
+    return 0;
+  }
+  const totalAPO = items.reduce((sum, item) => {
+    const itemAPO = calculateAPO(item, category);
+    console.log(`Item: "${item.name || item.title}", APO: ${itemAPO}`);
+    return sum + itemAPO;
+  }, 0);
+  const averageAPO = totalAPO / items.length;
+  console.log(`Average APO for ${category}: ${averageAPO.toFixed(2)}%`);
+  return averageAPO;
+};
 
 const JobTaxonomySelector = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [occupations, setOccupations] = useState([]);
+  const [results, setResults] = useState([]);
   const [selectedOccupation, setSelectedOccupation] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [customAPOData, setCustomAPOData] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      setIsLoading(false);
+    };
+  }, []);
 
   const handleSearch = async () => {
+     setIsLoading(true);
+     setError(null);
+     try {
+       const occupations = await searchOccupations(searchTerm);
+       setResults(occupations);
+     } catch (error) {
+       console.error('Error searching occupations:', error);
+       setError('An error occurred while searching. Please try again.');
+     } finally {
+       setIsLoading(false);
+     }
+   };
+
+  const handleOccupationSelect = async (occupation) => {
+    console.log('Selected occupation:', occupation);
+    setIsLoading(true);
+    setError(null);
     try {
-      const results = await searchOccupations(searchTerm);
-      setOccupations(results);
+      const details = await getOccupationDetails(occupation.code);
+      console.log('Occupation details received:', details);
+      setSelectedOccupation({ ...occupation, ...details });
     } catch (error) {
-      console.error('Error searching occupations:', error);
+      console.error('Error fetching occupation details:', error);
+      setError('An error occurred while fetching occupation details. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleOccupationSelect = async (occupation) => {
-    try {
-      console.log('Selected occupation:', occupation);
-      const details = await getOccupationDetails(occupation.code[0]);
-      setSelectedOccupation(details);
-    } catch (error) {
-      console.error('Error fetching occupation details:', error);
-    }
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      setCustomAPOData(jsonData);
+    };
+    reader.readAsArrayBuffer(file);
   };
-  const renderList = (title, items) => {
+
+  const renderList = (title, items, category) => {
     if (!items || items.length === 0) {
       return (
-        <>
-          <h3>{title}</h3>
-          <p>No {title.toLowerCase()} information is currently available for this occupation.</p>
-        </>
+        <Box my={2}>
+          <Typography variant="h6">{title}</Typography>
+          <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
+        </Box>
       );
     }
+    const averageAPO = getAverageAPO(items, category);
     return (
-      <>
-        <h3>{title}</h3>
-        <ul>
+      <Box my={2}>
+        <Typography variant="h6">{title}</Typography>
+        <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
+        <List>
           {items.map((item, index) => (
-            <li key={index}>
-              <strong>{item.name || item.title}</strong>: {item.description}
-              {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
-            </li>
+            <ListItem key={index}>
+              <ListItemText
+                primary={<strong>{item.name || item.title}</strong>}
+                secondary={
+                  <>
+                    {item.description}
+                    {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
+                    <br />
+                    APO: {calculateAPO(item, category).toFixed(2)}%
+                  </>
+                }
+              />
+            </ListItem>
           ))}
-        </ul>
-      </>
+        </List>
+      </Box>
     );
   };
 
   const renderAdditionalDetails = (details) => {
     return (
-      <div>
-        <h3>Additional Details</h3>
-        <p><strong>Description:</strong> {details.description}</p>
-        <p><strong>O*NET-SOC Code:</strong> {details.code}</p>
-        <h4>Sample Job Titles:</h4>
-        <ul>
+      <Box my={2}>
+        <Typography variant="h6">Additional Details</Typography>
+        <Typography variant="body2"><strong>Description:</strong> {details.description}</Typography>
+        <Typography variant="body2"><strong>O*NET-SOC Code:</strong> {details.code}</Typography>
+        <Typography variant="h6">Sample Job Titles:</Typography>
+        <List>
           {details.sample_of_reported_job_titles?.title?.map((title, index) => (
-            <li key={index}>{title}</li>
+            <ListItem key={index}>
+              <ListItemText primary={title} />
+            </ListItem>
           ))}
-        </ul>
-        <p><strong>Updated:</strong> {details.updated?.year}</p>
-      </div>
+        </List>
+        <Typography variant="body2"><strong>Updated:</strong> {details.updated?.year}</Typography>
+      </Box>
+    );
+  };
+
+  const renderAutomationAnalysis = (occupation) => {
+    if (!occupation) return null;
+
+    console.log('Rendering Automation Analysis');
+    console.log('Occupation:', occupation);
+
+    const categories = [
+      { name: 'Tasks', items: occupation.tasks, category: 'tasks' },
+      { name: 'Knowledge', items: occupation.knowledge, category: 'knowledge' },
+      { name: 'Skills', items: occupation.skills, category: 'skills' },
+      { name: 'Abilities', items: occupation.abilities, category: 'abilities' },
+      { name: 'Technologies', items: occupation.technologies, category: 'technologies' }
+    ];
+
+    const categoryAPOs = categories.map(category => {
+      const apo = getAverageAPO(category.items, category.category);
+      console.log(`${category.name} APO: ${apo.toFixed(2)}%`);
+      return apo;
+    });
+
+    const overallAPO = categoryAPOs.reduce((sum, apo) => sum + apo, 0) / categories.length;
+    console.log(`Overall APO: ${overallAPO.toFixed(2)}%`);
+
+    return (
+      <Box my={2}>
+        <Typography variant="h6">Automation Exposure Analysis</Typography>
+        <Typography variant="body2">Overall APO: {overallAPO.toFixed(2)}%</Typography>
+        {categories.map((category, index) => (
+          <Typography key={category.name} variant="body2">
+            {category.name} APO: {categoryAPOs[index].toFixed(2)}%
+          </Typography>
+        ))}
+      </Box>
     );
   };
 
@@ -69,17 +226,21 @@ const JobTaxonomySelector = () => {
     if (!selectedOccupation) return;
 
     const data = [
-      { title: 'Tasks', items: selectedOccupation.tasks },
-      { title: 'Knowledge', items: selectedOccupation.knowledge },
-      { title: 'Skills', items: selectedOccupation.skills },
-      { title: 'Abilities', items: selectedOccupation.abilities },
-      { title: 'Technologies', items: selectedOccupation.technologies }
+      { title: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
+      { title: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
+      { title: 'Skills', items: selectedOccupation.skills, category: 'skills' },
+      { title: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
+      { title: 'Technologies', items: selectedOccupation.technologies, category: 'technologies' }
     ];
 
     const worksheet = XLSX.utils.json_to_sheet([]);
     data.forEach(section => {
       XLSX.utils.sheet_add_json(worksheet, [{ title: section.title }], { skipHeader: true, origin: -1 });
-      XLSX.utils.sheet_add_json(worksheet, section.items, { origin: -1 });
+      const itemsWithAPO = section.items.map(item => ({
+        ...item,
+        APO: calculateAPO(item, section.category)
+      }));
+      XLSX.utils.sheet_add_json(worksheet, itemsWithAPO, { origin: -1 });
     });
 
     const workbook = XLSX.utils.book_new();
@@ -90,39 +251,51 @@ const JobTaxonomySelector = () => {
   };
 
   return (
-    <div>
-      <h1>O*NET Career Explorer</h1>
-      <input 
-        type="text" 
-        value={searchTerm} 
-        onChange={(e) => setSearchTerm(e.target.value)} 
-        placeholder="Search for occupations"
+    <Container>
+      <Typography variant="h4" gutterBottom>O*NET Career Explorer</Typography>
+      <TextField
+        label="Search for occupations"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        fullWidth
+        margin="normal"
       />
-      <button onClick={handleSearch} disabled={isLoading}>
-        {isLoading ? 'Searching...' : 'Search'}
-      </button>
+      <Button variant="contained" color="primary" onClick={handleSearch} disabled={isLoading}>
+        {isLoading ? <CircularProgress size={24} /> : 'Search'}
+      </Button>
+      <Input
+        type="file"
+        onChange={handleFileUpload}
+        style={{ marginLeft: '10px' }}
+      />
+      {error && (
+        <Typography color="error" variant="body2" gutterBottom>{error}</Typography>
+      )}
       {results.length > 0 && (
-        <ul>
+        <List>
           {results.map(occupation => (
-            <li key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
-              {occupation.title}
-            </li>
+            <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
+              <ListItemText primary={occupation.title} />
+            </ListItem>
           ))}
-        </ul>
+        </List>
       )}
       {selectedOccupation && (
-        <div>
-          <h2>{selectedOccupation.title}</h2>
+        <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
+          <Typography variant="h5">{selectedOccupation.title}</Typography>
           {renderAdditionalDetails(selectedOccupation)}
-          {renderList('Tasks', selectedOccupation.tasks)}
-          {renderList('Knowledge', selectedOccupation.knowledge)}
-          {renderList('Skills', selectedOccupation.skills)}
-          {renderList('Abilities', selectedOccupation.abilities)}
-          {renderList('Technologies', selectedOccupation.technologies)}
-          <button onClick={downloadExcel}>Download as Excel</button>
-        </div>
+          {renderAutomationAnalysis(selectedOccupation)}
+          {renderList('Tasks', selectedOccupation.tasks, 'tasks')}
+          {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
+          {renderList('Skills', selectedOccupation.skills, 'skills')}
+          {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
+          {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
+          <Button variant="contained" color="secondary" onClick={downloadExcel} style={{ marginTop: '16px' }}>
+            Download as Excel
+          </Button>
+        </Paper>
       )}
-    </div>
+    </Container>
   );
 };
 
