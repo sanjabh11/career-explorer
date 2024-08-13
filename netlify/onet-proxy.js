@@ -6,19 +6,28 @@
 
    exports.handler = async function(event, context) {
      console.log('Function invoked with event:', JSON.stringify(event));
-     const { path, queryStringParameters } = event;
-     const url = `https://services.onetcenter.org${path}${queryStringParameters ? '?' + new URLSearchParams(queryStringParameters).toString() : ''}`;
+     const { keyword } = event.queryStringParameters || {};
+     
+     if (!keyword) {
+       return {
+         statusCode: 400,
+         body: JSON.stringify({ error: 'Keyword is required' })
+       };
+     }
+
+     const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
      
      console.log('Requesting URL:', url);
      console.log('Username:', process.env.REACT_APP_ONET_USERNAME);
      console.log('Password:', process.env.REACT_APP_ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
-     const auth = Buffer.from(`${process.env.REACT_APP_ONET_USERNAME}:${process.env.REACT_APP_ONET_PASSWORD}`).toString('base64');
-
      try {
        const response = await axios.get(url, {
+         auth: {
+           username: process.env.REACT_APP_ONET_USERNAME,
+           password: process.env.REACT_APP_ONET_PASSWORD
+         },
          headers: {
-           'Authorization': `Basic ${auth}`,
            'Accept': 'application/xml'
          }
        });
@@ -35,7 +44,7 @@
          statusCode: 200,
          headers: {
            "Access-Control-Allow-Origin": "*",
-           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Access-Control-Allow-Headers": "Content-Type",
            "Content-Type": "application/json"
          },
          body: JSON.stringify({ occupations: jsonData.occupations.occupation || [] })
@@ -47,7 +56,7 @@
          statusCode: error.response ? error.response.status : 500,
          headers: {
            "Access-Control-Allow-Origin": "*",
-           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Access-Control-Allow-Headers": "Content-Type",
            "Content-Type": "application/json"
          },
          body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
