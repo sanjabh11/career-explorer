@@ -1,4 +1,8 @@
    const axios = require('axios');
+   const { parseString } = require('xml2js');
+   const util = require('util');
+
+   const parseXml = util.promisify(parseString);
 
    exports.handler = async function(event, context) {
      console.log('Function invoked with event:', JSON.stringify(event));
@@ -15,13 +19,17 @@
        const response = await axios.get(url, {
          headers: {
            'Authorization': `Basic ${auth}`,
-           'Accept': 'application/json'
+           'Accept': 'application/xml'
          }
        });
        
        console.log('O*NET API Response Status:', response.status);
        console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
-       console.log('O*NET API Response Data:', JSON.stringify(response.data));
+
+       const xmlData = response.data;
+       const jsonData = await parseXml(xmlData);
+
+       console.log('Parsed JSON Data:', JSON.stringify(jsonData));
 
        return {
          statusCode: 200,
@@ -30,7 +38,7 @@
            "Access-Control-Allow-Headers": "Content-Type, Authorization",
            "Content-Type": "application/json"
          },
-         body: JSON.stringify(response.data)
+         body: JSON.stringify({ occupations: jsonData.occupations.occupation || [] })
        };
      } catch (error) {
        console.error('Error in Netlify Function:', error.message);
