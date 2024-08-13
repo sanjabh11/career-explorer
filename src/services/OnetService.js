@@ -5,6 +5,8 @@ const api = axios.create();
 api.interceptors.request.use(config => {
   const username = process.env.REACT_APP_ONET_USERNAME;
   const password = process.env.REACT_APP_ONET_PASSWORD;
+  console.log('Username:', username); // Add this line to check the username
+  console.log('Password:', password); // Add this line to check the password
   config.auth = {
     username: username,
     password: password
