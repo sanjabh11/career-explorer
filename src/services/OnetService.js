@@ -1,4 +1,4 @@
-      import axios from 'axios';
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || '',
@@ -29,6 +29,7 @@ export const getOccupationDetails = async (occupationCode) => {
     throw error;
   }
 };
+
 const processElementData = (data) => {
   if (!data) return [];
   
@@ -68,8 +69,23 @@ const processElementData = (data) => {
   return [];
 };
 
+const fetchData = async (endpoint) => {
+  try {
+    const response = await api.get(`/.netlify/functions/onet-proxy${endpoint}`);
+    console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 422) {
+      console.warn(`No data available for ${endpoint}`);
+    } else {
+      console.error(`Error fetching ${endpoint}:`, error.response ? error.response.data : error.message);
+    }
+    return null;
+  }
+};
 
-
+export const getOccupationDetailsWithTasks = async (formattedCode) => {
+  try {
     const [tasks, knowledge, skills, abilities, technologies] = await Promise.all([
       fetchData(`/ws/online/occupations/${formattedCode}/details/tasks`),
       fetchData(`/ws/online/occupations/${formattedCode}/details/knowledge`),
@@ -79,7 +95,6 @@ const processElementData = (data) => {
     ]);
 
     console.log('Processed API Responses:', {
-      details: details.data,
       tasks: processElementData(tasks),
       knowledge: processElementData(knowledge),
       skills: processElementData(skills),
@@ -88,7 +103,6 @@ const processElementData = (data) => {
     });
 
     return {
-      details: details.data,
       tasks: processElementData(tasks) || [],
       knowledge: processElementData(knowledge) || [],
       skills: processElementData(skills) || [],
