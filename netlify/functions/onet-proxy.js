@@ -14,6 +14,9 @@
          auth: {
            username: process.env.REACT_APP_ONET_USERNAME,
            password: process.env.REACT_APP_ONET_PASSWORD
+         },
+         headers: {
+           'Accept': 'application/json'
          }
        });
        
@@ -25,7 +28,8 @@
          statusCode: 200,
          headers: {
            "Access-Control-Allow-Origin": "*",
-           "Access-Control-Allow-Headers": "Content-Type",
+           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Content-Type": "application/json"
          },
          body: JSON.stringify(response.data)
        };
@@ -34,6 +38,11 @@
        console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
        return {
          statusCode: error.response ? error.response.status : 500,
+         headers: {
+           "Access-Control-Allow-Origin": "*",
+           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Content-Type": "application/json"
+         },
          body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
        };
      }

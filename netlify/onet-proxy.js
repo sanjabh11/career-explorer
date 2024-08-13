@@ -9,12 +9,14 @@
      console.log('Username:', process.env.REACT_APP_ONET_USERNAME);
      console.log('Password:', process.env.REACT_APP_ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
-     const auth = Buffer.from(`${process.env.REACT_APP_ONET_USERNAME}:${process.env.REACT_APP_ONET_PASSWORD}`).toString('base64');
-
      try {
        const response = await axios.get(url, {
+         auth: {
+           username: process.env.REACT_APP_ONET_USERNAME,
+           password: process.env.REACT_APP_ONET_PASSWORD
+         },
          headers: {
-           'Authorization': `Basic ${auth}`
+           'Accept': 'application/json'
          }
        });
        
@@ -27,6 +29,7 @@
          headers: {
            "Access-Control-Allow-Origin": "*",
            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Content-Type": "application/json"
          },
          body: JSON.stringify(response.data)
        };
@@ -35,6 +38,11 @@
        console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
        return {
          statusCode: error.response ? error.response.status : 500,
+         headers: {
+           "Access-Control-Allow-Origin": "*",
+           "Access-Control-Allow-Headers": "Content-Type, Authorization",
+           "Content-Type": "application/json"
+         },
          body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
        };
      }
