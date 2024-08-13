@@ -46,15 +46,17 @@ const processElementData = (data) => {
   return [];
 };
 
-export const searchOccupations = async (keyword) => {
-  try {
-    const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
-    return response.data.occupation || [];
-  } catch (error) {
-    console.error('Error searching occupations:', error);
-    throw error;
-  }
-};
+    export const searchOccupations = async (keyword) => {
+     try {
+       console.log('Searching occupations with keyword:', keyword);
+       const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
+       console.log('Search Occupations Response:', response.data);
+       return response.data.occupation || [];
+     } catch (error) {
+       console.error('Error searching occupations:', error.response ? error.response.data : error.message);
+       throw error;
+     }
+   };
 
 export const getOccupationDetails = async (code) => {
   try {
