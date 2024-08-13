@@ -1,48 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
 
 const JobTaxonomySelector = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState([]);
+  const [occupations, setOccupations] = useState([]);
   const [selectedOccupation, setSelectedOccupation] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      setIsLoading(false);
-    };
-  }, []);
 
   const handleSearch = async () => {
-    setIsLoading(true);
     try {
-      const occupations = await searchOccupations(searchTerm);
-      setResults(occupations);
+      const results = await searchOccupations(searchTerm);
+      setOccupations(results);
     } catch (error) {
       console.error('Error searching occupations:', error);
-      alert('An error occurred while searching. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleOccupationSelect = async (occupation) => {
-    console.log('Selected occupation:', occupation);
-    setIsLoading(true);
     try {
-      const details = await getOccupationDetails(occupation.code);
-      console.log('Occupation details received:', details);
-      setSelectedOccupation({ ...occupation, ...details });
+      console.log('Selected occupation:', occupation);
+      const details = await getOccupationDetails(occupation.code[0]);
+      setSelectedOccupation(details);
     } catch (error) {
       console.error('Error fetching occupation details:', error);
-      alert('An error occurred while fetching occupation details. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
-
   const renderList = (title, items) => {
     if (!items || items.length === 0) {
       return (
