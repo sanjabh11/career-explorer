@@ -3,14 +3,7 @@ import axios from 'axios';
 const api = axios.create();
 
 api.interceptors.request.use(config => {
-  const username = process.env.REACT_APP_ONET_USERNAME;
-  const password = process.env.REACT_APP_ONET_PASSWORD;
-  console.log('Username:', username); // Add this line to check the username
-  console.log('Password:', password); // Add this line to check the password
-  config.auth = {
-    username: username,
-    password: password
-  };
+  console.log('API Request Config:', config);
   return config;
 });
 
@@ -55,7 +48,7 @@ const processElementData = (data) => {
 
 export const searchOccupations = async (keyword) => {
   try {
-    const response = await api.get(`/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
+    const response = await api.get(`/.netlify/functions/onet-proxy/ws/online/search?keyword=${encodeURIComponent(keyword)}`);
     return response.data.occupation || [];
   } catch (error) {
     console.error('Error searching occupations:', error);
@@ -68,11 +61,11 @@ export const getOccupationDetails = async (code) => {
     const formattedCode = code.includes('-') ? code : code.replace(/^(\d{2})(\d{4})$/, '\$1-\$2.00');
     console.log('Fetching details for occupation code:', formattedCode);
 
-    const details = await api.get(`/ws/online/occupations/${formattedCode}`);
+    const details = await api.get(`/.netlify/functions/onet-proxy/ws/online/occupations/${formattedCode}`);
     
     const fetchData = async (endpoint) => {
       try {
-        const response = await api.get(endpoint);
+        const response = await api.get(`/.netlify/functions/onet-proxy${endpoint}`);
         console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
         return response.data;
       } catch (error) {
