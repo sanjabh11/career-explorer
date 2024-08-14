@@ -1,5 +1,5 @@
-const axios = require('axios'); // Ensure this line is present
- 
+const axios = require('axios');
+
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
   const { path, queryStringParameters } = event;
