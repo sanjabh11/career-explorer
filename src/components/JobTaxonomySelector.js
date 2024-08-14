@@ -40,26 +40,26 @@ const apoCategoriesPercentages = {
 };
 
 const calculateAPO = (item, category) => {
-  if (!item || !item.name) {
+  if (!item || (!item.name && !item.title)) {
     console.warn(`Invalid item in category ${category}:`, item);
     return 0;
   }
 
-  const itemName = item.name || '';
+  const itemName = item.name || item.title || '';
   const itemDescription = item.description || '';
   const fullText = `${itemName} ${itemDescription}`.toLowerCase();
 
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
-  for (const [key, value] of Object.entries(apoCategoriesPercentages[category])) {
+  for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
     if (fullText.includes(key.toLowerCase())) {
       console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
       return value;
     }
   }
 
-  const averageCategoryAPO = Object.values(apoCategoriesPercentages[category]).reduce((a, b) => a + b, 0) / Object.values(apoCategoriesPercentages[category]).length;
+  const averageCategoryAPO = Object.values(apoCategoriesPercentages[category] || {}).reduce((a, b) => a + b, 0) / Object.values(apoCategoriesPercentages[category] || {}).length || 0;
   console.log(`No exact match found for "${itemName}" in category "${category}". Using average category APO: ${averageCategoryAPO.toFixed(2)}%`);
   return averageCategoryAPO;
 };
@@ -98,6 +98,7 @@ const JobTaxonomySelector = () => {
     setError(null);
     try {
       const occupations = await searchOccupations(searchTerm);
+      console.log('Search results:', occupations);
       setResults(occupations);
     } catch (error) {
       console.error('Error searching occupations:', error);
@@ -112,7 +113,7 @@ const JobTaxonomySelector = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const details = await getOccupationDetails(occupation.code[0]);
+      const details = await getOccupationDetails(occupation.code);
       console.log('Occupation details received:', details);
       setSelectedOccupation({ ...occupation, ...details });
     } catch (error) {
@@ -155,11 +156,12 @@ const JobTaxonomySelector = () => {
           {items.map((item, index) => (
             <ListItem key={index}>
               <ListItemText
-                primary={<strong>{item.name || 'Unnamed Item'}</strong>}
+                primary={<strong>{item.name || item.title || 'Unnamed Item'}</strong>}
                 secondary={
                   <>
                     {item.description || 'No description available'}
-                    {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
+                    {item.value && <span> (Value: {item.value})</span>}
+                    {item.scale && <span> (Scale: {item.scale})</span>}
                     <br />
                     APO: {calculateAPO(item, category).toFixed(2)}%
                   </>
