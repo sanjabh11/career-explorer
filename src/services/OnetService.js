@@ -25,11 +25,11 @@ export const getOccupationDetails = async (occupationCode) => {
 
     const processedData = {
       ...response.data.details,
-      tasks: processElementData(response.data.tasks),
-      knowledge: processElementData(response.data.knowledge),
-      skills: processElementData(response.data.skills),
-      abilities: processElementData(response.data.abilities),
-      technologies: processElementData(response.data.technology_skills)
+      tasks: processElementData(response.data.tasks, 'tasks'),
+      knowledge: processElementData(response.data.knowledge, 'knowledge'),
+      skills: processElementData(response.data.skills, 'skills'),
+      abilities: processElementData(response.data.abilities, 'abilities'),
+      technologies: processElementData(response.data.technology_skills, 'technologies')
     };
 
     console.log('Processed Occupation Details:', processedData);
@@ -41,7 +41,7 @@ export const getOccupationDetails = async (occupationCode) => {
   }
 };
 
-const processElementData = (data) => {
+const processElementData = (data, category) => {
   if (!data) return [];
   
   if (Array.isArray(data.element)) {
@@ -64,13 +64,13 @@ const processElementData = (data) => {
     }));
   }
   
-  if (Array.isArray(data.category)) {
+  if (category === 'technologies' && Array.isArray(data.category)) {
     return data.category.flatMap(category => 
       category.example.map(item => ({
         id: item.name,
         name: item.name,
         description: category.title?.name || 'No description available',
-        value: item.hot_technology ? "Hot Technology" : undefined,
+        value: item.hot_technology ? "Hot Technology" : "Standard Technology",
         scale: undefined
       }))
     );
@@ -106,22 +106,28 @@ export const getOccupationDetailsWithTasks = async (formattedCode) => {
     ]);
 
     console.log('Processed API Responses:', {
-      tasks: processElementData(tasks),
-      knowledge: processElementData(knowledge),
-      skills: processElementData(skills),
-      abilities: processElementData(abilities),
-      technologies: processElementData(technologies)
+      tasks: processElementData(tasks, 'tasks'),
+      knowledge: processElementData(knowledge, 'knowledge'),
+      skills: processElementData(skills, 'skills'),
+      abilities: processElementData(abilities, 'abilities'),
+      technologies: processElementData(technologies, 'technologies')
     });
 
     return {
-      tasks: processElementData(tasks) || [],
-      knowledge: processElementData(knowledge) || [],
-      skills: processElementData(skills) || [],
-      abilities: processElementData(abilities) || [],
-      technologies: processElementData(technologies) || []
+      tasks: processElementData(tasks, 'tasks') || [],
+      knowledge: processElementData(knowledge, 'knowledge') || [],
+      skills: processElementData(skills, 'skills') || [],
+      abilities: processElementData(abilities, 'abilities') || [],
+      technologies: processElementData(technologies, 'technologies') || []
     };
   } catch (error) {
     console.error('Error fetching occupation details:', error);
     throw error;
   }
+};
+
+export default {
+  searchOccupations,
+  getOccupationDetails,
+  getOccupationDetailsWithTasks
 };
