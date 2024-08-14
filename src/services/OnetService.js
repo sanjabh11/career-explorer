@@ -67,13 +67,13 @@ const processElementData = (data, category) => {
   if (category === 'technologies' && Array.isArray(data.category)) {
     return data.category.flatMap(category => 
       category.example.map(item => ({
-        id: item.name,
+        id: item.id || item.name, // Use name as fallback for id
         name: item.name,
         description: category.title?.name || 'No description available',
         value: item.hot_technology ? "Hot Technology" : "Standard Technology",
         scale: undefined
       }))
-    );
+    ).filter(item => item.name); // Filter out items without a name
   }
   
   console.warn('Unhandled data structure:', data);
