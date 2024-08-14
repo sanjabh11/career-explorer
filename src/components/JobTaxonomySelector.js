@@ -94,34 +94,34 @@ const JobTaxonomySelector = () => {
   }, []);
 
   const handleSearch = async () => {
-     setIsLoading(true);
-     setError(null);
-     try {
-       const occupations = await searchOccupations(searchTerm);
-       setResults(occupations);
-     } catch (error) {
-       console.error('Error searching occupations:', error);
-       setError('An error occurred while searching. Please try again.');
-     } finally {
-       setIsLoading(false);
-     }
-   };
+    setIsLoading(true);
+    setError(null);
+    try {
+      const occupations = await searchOccupations(searchTerm);
+      setResults(occupations);
+    } catch (error) {
+      console.error('Error searching occupations:', error);
+      setError('An error occurred while searching. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOccupationSelect = async (occupation) => {
-  console.log('Selected occupation:', occupation);
-  setIsLoading(true);
-  setError(null);
-  try {
-    const details = await getOccupationDetails(occupation.code[0]);
-    console.log('Occupation details received:', details);
-    setSelectedOccupation({ ...occupation, ...details });
-  } catch (error) {
-    console.error('Error fetching occupation details:', error);
-    setError('An error occurred while fetching occupation details. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    console.log('Selected occupation:', occupation);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const details = await getOccupationDetails(occupation.code[0]);
+      console.log('Occupation details received:', details);
+      setSelectedOccupation({ ...occupation, ...details });
+    } catch (error) {
+      console.error('Error fetching occupation details:', error);
+      setError('An error occurred while fetching occupation details. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -138,39 +138,39 @@ const JobTaxonomySelector = () => {
   };
 
   const renderList = (title, items, category) => {
-  if (!items || items.length === 0) {
+    if (!items || items.length === 0) {
+      return (
+        <Box my={2}>
+          <Typography variant="h6">{title}</Typography>
+          <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
+        </Box>
+      );
+    }
+    const averageAPO = getAverageAPO(items, category);
     return (
       <Box my={2}>
         <Typography variant="h6">{title}</Typography>
-        <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
+        <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
+        <List>
+          {items.map((item, index) => (
+            <ListItem key={index}>
+              <ListItemText
+                primary={<strong>{item.name || 'Unnamed Item'}</strong>}
+                secondary={
+                  <>
+                    {item.description || 'No description available'}
+                    {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
+                    <br />
+                    APO: {calculateAPO(item, category).toFixed(2)}%
+                  </>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
       </Box>
     );
-  }
-  const averageAPO = getAverageAPO(items, category);
-  return (
-    <Box my={2}>
-      <Typography variant="h6">{title}</Typography>
-      <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
-      <List>
-        {items.map((item, index) => (
-          <ListItem key={index}>
-            <ListItemText
-              primary={<strong>{item.name || 'Unnamed Item'}</strong>}
-              secondary={
-                <>
-                  {item.description || 'No description available'}
-                  {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
-                  <br />
-                  APO: {calculateAPO(item, category).toFixed(2)}%
-                </>
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
-};
+  };
 
   const renderAdditionalDetails = (details) => {
     return (
