@@ -30,7 +30,7 @@ const apoCategoriesPercentages = {
     "Problem Sensitivity": 55, "Deductive Reasoning": 50, "Inductive Reasoning": 60,
     "Information Ordering": 70, "Near Vision": 40, "Speech Recognition": 35
   },
-  technologies: {
+  "Technology Skills": {
     "Development Environment": 55, "Presentation Software": 50,
     "Object Oriented Development": 60, "Web Platform Development": 65,
     "Database Management": 70, "Operating System": 45,
@@ -52,9 +52,9 @@ const calculateAPO = (item, category) => {
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
-  if (category === 'technologies') {
-    // Assign a default APO value for technologies
-    return apoCategoriesPercentages.technologies['Development Environment'] || 55;
+  if (category === 'Technology Skills') {
+    // Assign a default APO value for technology skills
+    return apoCategoriesPercentages['Technology Skills']['Development Environment'] || 55;
   }
 
   for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
@@ -209,7 +209,7 @@ const JobTaxonomySelector = () => {
       { name: 'Knowledge', items: occupation.knowledge, category: 'knowledge' },
       { name: 'Skills', items: occupation.skills, category: 'skills' },
       { name: 'Abilities', items: occupation.abilities, category: 'abilities' },
-      { name: 'Technologies', items: occupation.technologies, category: 'technologies' }
+      { name: 'Technology Skills', items: occupation.technologies, category: 'Technology Skills' }
     ];
 
     const categoryAPOs = categories.map(category => {
@@ -242,7 +242,7 @@ const JobTaxonomySelector = () => {
       { title: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
       { title: 'Skills', items: selectedOccupation.skills, category: 'skills' },
       { title: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
-      { title: 'Technologies', items: selectedOccupation.technologies, category: 'technologies' }
+      { title: 'Technology Skills', items: selectedOccupation.technologies, category: 'Technology Skills' }
     ];
 
     const worksheet = XLSX.utils.json_to_sheet([]);
@@ -301,7 +301,7 @@ const JobTaxonomySelector = () => {
           {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
           {renderList('Skills', selectedOccupation.skills, 'skills')}
           {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
-          {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
+          {renderList('Technology Skills', selectedOccupation.technologies, 'Technology Skills')}
           <Button variant="contained" color="secondary" onClick={downloadExcel} style={{ marginTop: '16px' }}>
             Download as Excel
           </Button>
