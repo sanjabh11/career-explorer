@@ -1,9 +1,3 @@
-const axios = require('axios');
-const { parseString } = require('xml2js');
-const util = require('util');
-
-const parseXml = util.promisify(parseString);
-
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
   const { keyword } = event.queryStringParameters || {};
@@ -17,8 +11,7 @@ exports.handler = async function(event, context) {
 
   const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
   
-  console.log('Username:', process.env.ONET_USERNAME);
-  console.log('Password:', process.env.ONET_PASSWORD ? '[REDACTED]' : 'Not set');
+  console.log('Requesting URL:', url);
 
   try {
     const response = await axios.get(url, {
@@ -31,13 +24,11 @@ exports.handler = async function(event, context) {
       }
     });
     
-    console.log('O*NET API Response Status:', response.status);
-    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
+    console.log('O*NET API Response:', response.data);
 
     const xmlData = response.data;
     const jsonData = await parseXml(xmlData);
-
-    console.log('Parsed JSON Data:', JSON.stringify(jsonData));
+    console.log('Parsed JSON Data:', JSON.stringify(jsonData, null, 2));
 
     return {
       statusCode: 200,
