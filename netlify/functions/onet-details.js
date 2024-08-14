@@ -1,9 +1,3 @@
-const axios = require('axios');
-const { parseString } = require('xml2js');
-const util = require('util');
-
-const parseXml = util.promisify(parseString);
-
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
   const { code } = event.queryStringParameters || {};
@@ -42,6 +36,7 @@ exports.handler = async function(event, context) {
 
       const xmlData = response.data;
       const jsonData = await parseXml(xmlData);
+      console.log(`Data for ${endpoint}:`, JSON.stringify(jsonData, null, 2));
       return { endpoint, data: jsonData };
     }));
 
