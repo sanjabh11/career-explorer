@@ -29,7 +29,7 @@ export const getOccupationDetails = async (occupationCode) => {
       knowledge: processElementData(response.data.knowledge, 'knowledge'),
       skills: processElementData(response.data.skills, 'skills'),
       abilities: processElementData(response.data.abilities, 'abilities'),
-      technologies: processElementData(response.data.technology_skills, 'technologies')
+      technologies: processElementData(response.data.technology_skills, 'Technology Skills')
     };
 
     console.log('Processed Occupation Details:', processedData);
@@ -64,16 +64,16 @@ const processElementData = (data, category) => {
     }));
   }
   
-  if (category === 'technologies' && Array.isArray(data.category)) {
+  if (category === 'Technology Skills' && Array.isArray(data.category)) {
     return data.category.flatMap(category => 
       category.example.map(item => ({
-        id: item.id || item.name, // Use name as fallback for id
+        id: item.id || item.name,
         name: item.name,
         description: category.title?.name || 'No description available',
         value: item.hot_technology ? "Hot Technology" : "Standard Technology",
         scale: undefined
       }))
-    ).filter(item => item.name); // Filter out items without a name
+    ).filter(item => item.name);
   }
   
   console.warn('Unhandled data structure:', data);
@@ -110,7 +110,7 @@ export const getOccupationDetailsWithTasks = async (formattedCode) => {
       knowledge: processElementData(knowledge, 'knowledge'),
       skills: processElementData(skills, 'skills'),
       abilities: processElementData(abilities, 'abilities'),
-      technologies: processElementData(technologies, 'technologies')
+      technologies: processElementData(technologies, 'Technology Skills')
     });
 
     return {
@@ -118,7 +118,7 @@ export const getOccupationDetailsWithTasks = async (formattedCode) => {
       knowledge: processElementData(knowledge, 'knowledge') || [],
       skills: processElementData(skills, 'skills') || [],
       abilities: processElementData(abilities, 'abilities') || [],
-      technologies: processElementData(technologies, 'technologies') || []
+      technologies: processElementData(technologies, 'Technology Skills') || []
     };
   } catch (error) {
     console.error('Error fetching occupation details:', error);
