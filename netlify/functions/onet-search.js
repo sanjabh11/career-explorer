@@ -1,3 +1,8 @@
+const axios = require('axios'); // Ensure this line is present
+const { parseString } = require('xml2js');
+const util = require('util');
+
+// Rest of your code...
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
   const { keyword } = event.queryStringParameters || {};
