@@ -52,10 +52,6 @@ const calculateAPO = (item, category) => {
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
-  if (category === 'Technology Skills') {
-    return apoCategoriesPercentages['Technology Skills']['Development Environment'] || 55;
-  }
-
   for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
     if (fullText.includes(key.toLowerCase())) {
       console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
@@ -312,11 +308,6 @@ const JobTaxonomySelector = () => {
       {results.length > 0 && (
         <List>
           {results.map(occupation => (
-            <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
-              <ListItemText primary={occupation.title} />
-            </ListItem>
-          ))}
-                  {results.map(occupation => (
             <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
               <ListItemText primary={occupation.title} />
             </ListItem>
