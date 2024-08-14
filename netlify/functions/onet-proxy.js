@@ -1,13 +1,9 @@
-const axios = require('axios');
-
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
   const { path, queryStringParameters } = event;
   const url = `https://services.onetcenter.org${path}${queryStringParameters ? '?' + new URLSearchParams(queryStringParameters).toString() : ''}`;
   
   console.log('Requesting URL:', url);
-  console.log('Username:', process.env.REACT_APP_ONET_USERNAME);
-  console.log('Password:', process.env.REACT_APP_ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
   try {
     const response = await axios.get(url, {
@@ -20,9 +16,7 @@ exports.handler = async function(event, context) {
       }
     });
     
-    console.log('O*NET API Response Status:', response.status);
-    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
-    console.log('O*NET API Response Data:', JSON.stringify(response.data));
+    console.log('O*NET API Response:', JSON.stringify(response.data, null, 2));
 
     return {
       statusCode: 200,
