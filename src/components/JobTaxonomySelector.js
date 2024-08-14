@@ -52,6 +52,11 @@ const calculateAPO = (item, category) => {
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
+  if (category === 'technologies') {
+    // Assign a default APO value for technologies
+    return apoCategoriesPercentages.technologies['Development Environment'] || 55;
+  }
+
   for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
     if (fullText.includes(key.toLowerCase())) {
       console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
