@@ -53,7 +53,6 @@ const calculateAPO = (item, category) => {
   console.log(`Full text: "${fullText}"`);
 
   if (category === 'Technology Skills') {
-    // Assign a default APO value for technology skills
     return apoCategoriesPercentages['Technology Skills']['Development Environment'] || 55;
   }
 
@@ -237,25 +236,52 @@ const JobTaxonomySelector = () => {
   const downloadExcel = () => {
     if (!selectedOccupation) return;
 
-    const data = [
-      { title: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
-      { title: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
-      { title: 'Skills', items: selectedOccupation.skills, category: 'skills' },
-      { title: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
-      { title: 'Technology Skills', items: selectedOccupation.technologies, category: 'Technology Skills' }
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet([]);
+
+    // Add occupation title and description
+    XLSX.utils.sheet_add_json(worksheet, [
+      { A: 'Occupation', B: selectedOccupation.title },
+      { A: 'Description', B: selectedOccupation.description },
+      { A: 'O*NET-SOC Code', B: selectedOccupation.code },
+      { A: 'Updated', B: selectedOccupation.updated?.year },
+      {}  // Empty row for spacing
+    ], { skipHeader: true, origin: 'A1' });
+
+    // Add Automation Exposure Analysis
+    const categories = [
+      { name: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
+      { name: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
+      { name: 'Skills', items: selectedOccupation.skills, category: 'skills' },
+      { name: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
+      { name: 'Technology Skills', items: selectedOccupation.technologies, category: 'Technology Skills' }
     ];
 
-    const worksheet = XLSX.utils.json_to_sheet([]);
-    data.forEach(section => {
-      XLSX.utils.sheet_add_json(worksheet, [{ title: section.title }], { skipHeader: true, origin: -1 });
-      const itemsWithAPO = section.items.map(item => ({
-        ...item,
-        APO: calculateAPO(item, section.category)
+    const categoryAPOs = categories.map(category => getAverageAPO(category.items, category.category));
+    const overallAPO = categoryAPOs.reduce((sum, apo) => sum + apo, 0) / categories.length;
+
+    XLSX.utils.sheet_add_json(worksheet, [
+      { A: 'Automation Exposure Analysis' },
+      { A: 'Overall APO', B: overallAPO.toFixed(2) + '%' },
+      ...categories.map((category, index) => ({ A: `${category.name} APO`, B: categoryAPOs[index].toFixed(2) + '%' })),
+      {}  // Empty row for spacing
+    ], { skipHeader: true, origin: -1 });
+
+    // Add detailed information for each category
+    categories.forEach(category => {
+      XLSX.utils.sheet_add_json(worksheet, [{ A: category.name }], { skipHeader: true, origin: -1 });
+      XLSX.utils.sheet_add_json(worksheet, [{ A: 'Name', B: 'Description', C: 'Value', D: 'Scale', E: 'APO' }], { origin: -1 });
+      const itemsWithAPO = category.items.map(item => ({
+        A: item.name || item.title,
+        B: item.description,
+        C: item.value,
+        D: item.scale,
+        E: calculateAPO(item, category.category).toFixed(2) + '%'
       }));
       XLSX.utils.sheet_add_json(worksheet, itemsWithAPO, { origin: -1 });
+      XLSX.utils.sheet_add_json(worksheet, [{}], { origin: -1 });  // Empty row for spacing
     });
 
-    const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
@@ -286,6 +312,11 @@ const JobTaxonomySelector = () => {
       {results.length > 0 && (
         <List>
           {results.map(occupation => (
+            <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
+              <ListItemText primary={occupation.title} />
+            </ListItem>
+          ))}
+                  {results.map(occupation => (
             <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
               <ListItemText primary={occupation.title} />
             </ListItem>
