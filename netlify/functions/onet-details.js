@@ -42,6 +42,7 @@ exports.handler = async function(event, context) {
 
       const xmlData = response.data;
       const jsonData = await parseXml(xmlData);
+      console.log(`Data for ${endpoint}:`, JSON.stringify(jsonData, null, 2));
       return { endpoint, data: jsonData };
     }));
 

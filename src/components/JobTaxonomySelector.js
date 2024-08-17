@@ -30,7 +30,7 @@ const apoCategoriesPercentages = {
     "Problem Sensitivity": 55, "Deductive Reasoning": 50, "Inductive Reasoning": 60,
     "Information Ordering": 70, "Near Vision": 40, "Speech Recognition": 35
   },
-  technologies: {
+  "Technology Skills": {
     "Development Environment": 55, "Presentation Software": 50,
     "Object Oriented Development": 60, "Web Platform Development": 65,
     "Database Management": 70, "Operating System": 45,
@@ -40,26 +40,26 @@ const apoCategoriesPercentages = {
 };
 
 const calculateAPO = (item, category) => {
-  if (!item || !item.name) {
+  if (!item || (!item.name && !item.title)) {
     console.warn(`Invalid item in category ${category}:`, item);
     return 0;
   }
 
-  const itemName = item.name || '';
+  const itemName = item.name || item.title || '';
   const itemDescription = item.description || '';
   const fullText = `${itemName} ${itemDescription}`.toLowerCase();
 
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
-  for (const [key, value] of Object.entries(apoCategoriesPercentages[category])) {
+  for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
     if (fullText.includes(key.toLowerCase())) {
       console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
       return value;
     }
   }
 
-  const averageCategoryAPO = Object.values(apoCategoriesPercentages[category]).reduce((a, b) => a + b, 0) / Object.values(apoCategoriesPercentages[category]).length;
+  const averageCategoryAPO = Object.values(apoCategoriesPercentages[category] || {}).reduce((a, b) => a + b, 0) / Object.values(apoCategoriesPercentages[category] || {}).length || 0;
   console.log(`No exact match found for "${itemName}" in category "${category}". Using average category APO: ${averageCategoryAPO.toFixed(2)}%`);
   return averageCategoryAPO;
 };
@@ -94,34 +94,35 @@ const JobTaxonomySelector = () => {
   }, []);
 
   const handleSearch = async () => {
-     setIsLoading(true);
-     setError(null);
-     try {
-       const occupations = await searchOccupations(searchTerm);
-       setResults(occupations);
-     } catch (error) {
-       console.error('Error searching occupations:', error);
-       setError('An error occurred while searching. Please try again.');
-     } finally {
-       setIsLoading(false);
-     }
-   };
+    setIsLoading(true);
+    setError(null);
+    try {
+      const occupations = await searchOccupations(searchTerm);
+      console.log('Search results:', occupations);
+      setResults(occupations);
+    } catch (error) {
+      console.error('Error searching occupations:', error);
+      setError('An error occurred while searching. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOccupationSelect = async (occupation) => {
-  console.log('Selected occupation:', occupation);
-  setIsLoading(true);
-  setError(null);
-  try {
-    const details = await getOccupationDetails(occupation.code[0]);
-    console.log('Occupation details received:', details);
-    setSelectedOccupation({ ...occupation, ...details });
-  } catch (error) {
-    console.error('Error fetching occupation details:', error);
-    setError('An error occurred while fetching occupation details. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    console.log('Selected occupation:', occupation);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const details = await getOccupationDetails(occupation.code);
+      console.log('Occupation details received:', details);
+      setSelectedOccupation({ ...occupation, ...details });
+    } catch (error) {
+      console.error('Error fetching occupation details:', error);
+      setError('An error occurred while fetching occupation details. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -138,39 +139,40 @@ const JobTaxonomySelector = () => {
   };
 
   const renderList = (title, items, category) => {
-  if (!items || items.length === 0) {
+    if (!items || items.length === 0) {
+      return (
+        <Box my={2}>
+          <Typography variant="h6">{title}</Typography>
+          <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
+        </Box>
+      );
+    }
+    const averageAPO = getAverageAPO(items, category);
     return (
       <Box my={2}>
         <Typography variant="h6">{title}</Typography>
-        <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
+        <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
+        <List>
+          {items.map((item, index) => (
+            <ListItem key={index}>
+              <ListItemText
+                primary={<strong>{item.name || item.title || 'Unnamed Item'}</strong>}
+                secondary={
+                  <>
+                    {item.description || 'No description available'}
+                    {item.value && <span> (Value: {item.value})</span>}
+                    {item.scale && <span> (Scale: {item.scale})</span>}
+                    <br />
+                    APO: {calculateAPO(item, category).toFixed(2)}%
+                  </>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
       </Box>
     );
-  }
-  const averageAPO = getAverageAPO(items, category);
-  return (
-    <Box my={2}>
-      <Typography variant="h6">{title}</Typography>
-      <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
-      <List>
-        {items.map((item, index) => (
-          <ListItem key={index}>
-            <ListItemText
-              primary={<strong>{item.name || 'Unnamed Item'}</strong>}
-              secondary={
-                <>
-                  {item.description || 'No description available'}
-                  {item.value && <span> (Value: {item.value}, Scale: {item.scale})</span>}
-                  <br />
-                  APO: {calculateAPO(item, category).toFixed(2)}%
-                </>
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
-};
+  };
 
   const renderAdditionalDetails = (details) => {
     return (
@@ -202,7 +204,7 @@ const JobTaxonomySelector = () => {
       { name: 'Knowledge', items: occupation.knowledge, category: 'knowledge' },
       { name: 'Skills', items: occupation.skills, category: 'skills' },
       { name: 'Abilities', items: occupation.abilities, category: 'abilities' },
-      { name: 'Technologies', items: occupation.technologies, category: 'technologies' }
+      { name: 'Technology Skills', items: occupation.technologies, category: 'Technology Skills' }
     ];
 
     const categoryAPOs = categories.map(category => {
@@ -230,25 +232,52 @@ const JobTaxonomySelector = () => {
   const downloadExcel = () => {
     if (!selectedOccupation) return;
 
-    const data = [
-      { title: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
-      { title: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
-      { title: 'Skills', items: selectedOccupation.skills, category: 'skills' },
-      { title: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
-      { title: 'Technologies', items: selectedOccupation.technologies, category: 'technologies' }
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet([]);
+
+    // Add occupation title and description
+    XLSX.utils.sheet_add_json(worksheet, [
+      { A: 'Occupation', B: selectedOccupation.title },
+      { A: 'Description', B: selectedOccupation.description },
+      { A: 'O*NET-SOC Code', B: selectedOccupation.code },
+      { A: 'Updated', B: selectedOccupation.updated?.year },
+      {}  // Empty row for spacing
+    ], { skipHeader: true, origin: 'A1' });
+
+    // Add Automation Exposure Analysis
+    const categories = [
+      { name: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
+      { name: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
+      { name: 'Skills', items: selectedOccupation.skills, category: 'skills' },
+      { name: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
+      { name: 'Technology Skills', items: selectedOccupation.technologies, category: 'Technology Skills' }
     ];
 
-    const worksheet = XLSX.utils.json_to_sheet([]);
-    data.forEach(section => {
-      XLSX.utils.sheet_add_json(worksheet, [{ title: section.title }], { skipHeader: true, origin: -1 });
-      const itemsWithAPO = section.items.map(item => ({
-        ...item,
-        APO: calculateAPO(item, section.category)
+    const categoryAPOs = categories.map(category => getAverageAPO(category.items, category.category));
+    const overallAPO = categoryAPOs.reduce((sum, apo) => sum + apo, 0) / categories.length;
+
+    XLSX.utils.sheet_add_json(worksheet, [
+      { A: 'Automation Exposure Analysis' },
+      { A: 'Overall APO', B: overallAPO.toFixed(2) + '%' },
+      ...categories.map((category, index) => ({ A: `${category.name} APO`, B: categoryAPOs[index].toFixed(2) + '%' })),
+      {}  // Empty row for spacing
+    ], { skipHeader: true, origin: -1 });
+
+    // Add detailed information for each category
+    categories.forEach(category => {
+      XLSX.utils.sheet_add_json(worksheet, [{ A: category.name }], { skipHeader: true, origin: -1 });
+      XLSX.utils.sheet_add_json(worksheet, [{ A: 'Name', B: 'Description', C: 'Value', D: 'Scale', E: 'APO' }], { origin: -1 });
+      const itemsWithAPO = category.items.map(item => ({
+        A: item.name || item.title,
+        B: item.description,
+        C: item.value,
+        D: item.scale,
+        E: calculateAPO(item, category.category).toFixed(2) + '%'
       }));
       XLSX.utils.sheet_add_json(worksheet, itemsWithAPO, { origin: -1 });
+      XLSX.utils.sheet_add_json(worksheet, [{}], { origin: -1 });  // Empty row for spacing
     });
 
-    const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
@@ -294,7 +323,7 @@ const JobTaxonomySelector = () => {
           {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
           {renderList('Skills', selectedOccupation.skills, 'skills')}
           {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
-          {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
+          {renderList('Technology Skills', selectedOccupation.technologies, 'Technology Skills')}
           <Button variant="contained" color="secondary" onClick={downloadExcel} style={{ marginTop: '16px' }}>
             Download as Excel
           </Button>
