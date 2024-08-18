@@ -287,7 +287,7 @@ const JobTaxonomySelector = () => {
       </Button>
       <Input
         type="file"
-        onChange={handleFileUpload}
+        //onChange={handleFileUpload}
         style={{ marginLeft: '10px' }}
       />
       {error && (
