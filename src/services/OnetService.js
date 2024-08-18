@@ -128,8 +128,10 @@ export const getOccupationDetailsWithTasks = async (formattedCode) => {
   }
 };
 
-export default {
+const OnetService = {
   searchOccupations,
   getOccupationDetails,
   getOccupationDetailsWithTasks
 };
+
+export default OnetService;
