@@ -1,14 +1,15 @@
 import axios from 'axios';
 
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '/api';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || '/api',
-  axios.get(`${apiBaseUrl}/onet-search`)
+  baseURL: apiBaseUrl
 });
 
 export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
-    const response = await api.get(`/.netlify/functions/onet-search?keyword=${encodeURIComponent(keyword)}`);
+    const response = await api.get(`/onet-search?keyword=${encodeURIComponent(keyword)}`);
     console.log('Search Occupations Response:', response.data);
 
     return response.data.occupations || [];
@@ -21,7 +22,7 @@ export const searchOccupations = async (keyword) => {
 export const getOccupationDetails = async (occupationCode) => {
   try {
     console.log('Fetching occupation details for:', occupationCode);
-    const response = await api.get(`/.netlify/functions/onet-details?code=${encodeURIComponent(occupationCode)}`);
+    const response = await api.get(`/onet-details?code=${encodeURIComponent(occupationCode)}`);
     console.log('Occupation Details Response:', response.data);
 
     const processedData = {
@@ -83,7 +84,7 @@ const processElementData = (data, category) => {
 
 const fetchData = async (endpoint) => {
   try {
-    const response = await api.get(`/.netlify/functions/onet-proxy${endpoint}`);
+    const response = await api.get(`/onet-proxy${endpoint}`);
     console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
