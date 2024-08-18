@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
-import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box, Input } from '@mui/material';
+import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box } from '@mui/material';
 
 const apoCategoriesPercentages = {
   tasks: {
@@ -85,7 +83,6 @@ const JobTaxonomySelector = () => {
   const [selectedOccupation, setSelectedOccupation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
 
   useEffect(() => {
     return () => {
@@ -123,8 +120,6 @@ const JobTaxonomySelector = () => {
       setIsLoading(false);
     }
   };
-
-  
 
   const renderList = (title, items, category) => {
     if (!items || items.length === 0) {
@@ -217,61 +212,6 @@ const JobTaxonomySelector = () => {
     );
   };
 
-  const downloadExcel = () => {
-    if (!selectedOccupation) return;
-
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet([]);
-
-    // Add occupation title and description
-    XLSX.utils.sheet_add_json(worksheet, [
-      { A: 'Occupation', B: selectedOccupation.title },
-      { A: 'Description', B: selectedOccupation.description },
-      { A: 'O*NET-SOC Code', B: selectedOccupation.code },
-      { A: 'Updated', B: selectedOccupation.updated?.year },
-      {}  // Empty row for spacing
-    ], { skipHeader: true, origin: 'A1' });
-
-    // Add Automation Exposure Analysis
-    const categories = [
-      { name: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
-      { name: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
-      { name: 'Skills', items: selectedOccupation.skills, category: 'skills' },
-      { name: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
-      { name: 'Technology Skills', items: selectedOccupation.technologies, category: 'Technology Skills' }
-    ];
-
-    const categoryAPOs = categories.map(category => getAverageAPO(category.items, category.category));
-    const overallAPO = categoryAPOs.reduce((sum, apo) => sum + apo, 0) / categories.length;
-
-    XLSX.utils.sheet_add_json(worksheet, [
-      { A: 'Automation Exposure Analysis' },
-      { A: 'Overall APO', B: overallAPO.toFixed(2) + '%' },
-      ...categories.map((category, index) => ({ A: `${category.name} APO`, B: categoryAPOs[index].toFixed(2) + '%' })),
-      {}  // Empty row for spacing
-    ], { skipHeader: true, origin: -1 });
-
-    // Add detailed information for each category
-    categories.forEach(category => {
-      XLSX.utils.sheet_add_json(worksheet, [{ A: category.name }], { skipHeader: true, origin: -1 });
-      XLSX.utils.sheet_add_json(worksheet, [{ A: 'Name', B: 'Description', C: 'Value', D: 'Scale', E: 'APO' }], { origin: -1 });
-      const itemsWithAPO = category.items.map(item => ({
-        A: item.name || item.title,
-        B: item.description,
-        C: item.value,
-        D: item.scale,
-        E: calculateAPO(item, category.category).toFixed(2) + '%'
-      }));
-      XLSX.utils.sheet_add_json(worksheet, itemsWithAPO, { origin: -1 });
-      XLSX.utils.sheet_add_json(worksheet, [{}], { origin: -1 });  // Empty row for spacing
-    });
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
-  };
-
   return (
     <Container>
       <Typography variant="h4" gutterBottom>O*NET Career Explorer</Typography>
@@ -285,11 +225,6 @@ const JobTaxonomySelector = () => {
       <Button variant="contained" color="primary" onClick={handleSearch} disabled={isLoading}>
         {isLoading ? <CircularProgress size={24} /> : 'Search'}
       </Button>
-      <Input
-        type="file"
-        //onChange={handleFileUpload}
-        style={{ marginLeft: '10px' }}
-      />
       {error && (
         <Typography color="error" variant="body2" gutterBottom>{error}</Typography>
       )}
@@ -312,9 +247,6 @@ const JobTaxonomySelector = () => {
           {renderList('Skills', selectedOccupation.skills, 'skills')}
           {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
           {renderList('Technology Skills', selectedOccupation.technologies, 'Technology Skills')}
-          <Button variant="contained" color="secondary" onClick={downloadExcel} style={{ marginTop: '16px' }}>
-            Download as Excel
-          </Button>
         </Paper>
       )}
     </Container>
