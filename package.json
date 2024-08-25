@@ -4,55 +4,59 @@
      "description": "This project is a tool for exploring career information using the O*NET database.",
      "main": "src/index.js",
      "scripts": {
-          "start": "react-scripts --openssl-legacy-provider start",
-          "build": "react-scripts --openssl-legacy-provider build",
-          "test": "react-scripts test",
-          "eject": "react-scripts eject"
+       "start": "react-scripts --openssl-legacy-provider start",
+       "build": "react-scripts --openssl-legacy-provider build",
+       "test": "react-scripts test",
+       "eject": "react-scripts eject"
      },
      "proxy": "https://services.onetcenter.org",
      "keywords": [],
      "author": "",
      "license": "ISC",
      "dependencies": {
-          "@emotion/react": "^11.13.0",
-          "@emotion/styled": "^11.13.0",
-          "@mui/material": "^5.16.7",
-          "axios": "^1.7.3",
-          "dotenv": "^16.4.5",
-          "file-saver": "^2.0.5",
-          "http-proxy-middleware": "^3.0.0",
-          "install": "^0.13.0",
-          "react": "^18.3.1",
-          "react-dom": "^18.3.1",
-          "react-scripts": "^5.0.1",
-          "timers-browserify": "^2.0.12",
-          "web-vitals": "^4.2.3",
-          "xlsx": "^0.18.5",
-          "xml2js": "^0.6.2"
+       "@mui/material": "^5.16.7",
+       "axios": "^1.7.3",
+       "dotenv": "^16.4.5",
+       "file-saver": "^2.0.5",
+       "http-proxy-middleware": "^3.0.0",
+       "install": "^0.13.0",
+       "react": "^18.3.1",
+       "react-dom": "^18.3.1",
+       "react-scripts": "^5.0.1",
+       "timers-browserify": "^2.0.12",
+       "web-vitals": "^4.2.3",
+       "xlsx": "^0.18.5",
+       "xml2js": "^0.6.2"
      },
-     "eslintConfig": {
-          "extends": [
-               "react-app",
-               "react-app/jest"
-          ]
-     },
-     "browserslist": {
-          "production": [
-               ">0.2%",
-               "not dead",
-               "not op_mini all"
-          ],
-          "development": [
-               "last 1 chrome version",
-               "last 1 firefox version",
-               "last 1 safari version"
-          ]
+     "peerDependencies": {
+       "@emotion/react": "^11.13.0",
+       "@emotion/styled": "^11.13.0"
      },
      "devDependencies": {
-	  "@vercel/node": "^2.8.0",
-          "xml2js": "^0.4.23",
-          "@babel/core": "^7.25.2",
-          "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+       "@vercel/node": "^2.8.0",
+       "xml2js": "^0.4.23",
+       "@babel/core": "^7.25.2",
+       "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+       "@emotion/react": "^11.13.0",
+       "@emotion/styled": "^11.13.0"
+     },
+     "eslintConfig": {
+       "extends": [
+         "react-app",
+         "react-app/jest"
+       ]
+     },
+     "browserslist": {
+       "production": [
+         ">0.2%",
+         "not dead",
+         "not op_mini all"
+       ],
+       "development": [
+         "last 1 chrome version",
+         "last 1 firefox version",
+         "last 1 safari version"
+       ]
      },
      "homepage": "."
-}
+   }
