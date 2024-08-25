@@ -4,26 +4,29 @@ const util = require('util');
 
 const parseXml = util.promisify(parseString);
 
-exports.handler = async function(event, context) {
-  console.log('Function invoked with event:', JSON.stringify(event));
-  const { code } = event.queryStringParameters || {};
+module.exports = async (req, res) => {
+  console.log('Function invoked with query:', JSON.stringify(req.query));
+  const { code, type } = req.query;
   
   if (!code) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Occupation code is required' })
-    };
+    return res.status(400).json({ error: 'Occupation code is required' });
   }
 
   const baseUrl = 'https://services.onetcenter.org/ws/online/occupations';
-  const endpoints = [
-    '',
-    '/details/tasks',
-    '/details/knowledge',
-    '/details/skills',
-    '/details/abilities',
-    '/details/technology_skills'
-  ];
+  let endpoints = [''];
+
+  if (type) {
+    endpoints = [`/details/${type}`];
+  } else {
+    endpoints = [
+      '',
+      '/details/tasks',
+      '/details/knowledge',
+      '/details/skills',
+      '/details/abilities',
+      '/details/technology_skills'
+    ];
+  }
 
   try {
     const results = await Promise.all(endpoints.map(async (endpoint) => {
@@ -57,26 +60,13 @@ exports.handler = async function(event, context) {
 
     console.log('Combined Data:', JSON.stringify(combinedData, null, 2));
 
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(combinedData)
-    };
+    res.status(200).json(combinedData);
   } catch (error) {
-    console.error('Error in Netlify Function:', error.message);
+    console.error('Error in Vercel Function:', error.message);
     console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
-    return {
-      statusCode: error.response ? error.response.status : 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
-    };
+    res.status(error.response ? error.response.status : 500).json({ 
+      error: error.message, 
+      details: error.response ? error.response.data : 'No details available' 
+    });
   }
 };

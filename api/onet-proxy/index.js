@@ -1,18 +1,11 @@
-const axios = require('axios');
-const { parseString } = require('xml2js');
-const util = require('util');
+import axios from 'axios';
 
-const parseXml = util.promisify(parseString);
+export default async function handler(req, res) {
+  console.log('API route hit:', req.url);
+  console.log('Query parameters:', req.query);
 
-module.exports = async (req, res) => {
-  console.log('Function invoked with query:', JSON.stringify(req.query));
-  const { keyword } = req.query;
-  
-  if (!keyword) {
-    return res.status(400).json({ error: 'Keyword is required' });
-  }
-
-  const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
+  const { path } = req.query;
+  const url = `https://services.onetcenter.org${path}`;
   
   console.log('Requesting URL:', url);
   console.log('Username:', process.env.ONET_USERNAME);
@@ -25,18 +18,15 @@ module.exports = async (req, res) => {
         password: process.env.ONET_PASSWORD
       },
       headers: {
-        'Accept': 'application/xml'
+        'Accept': 'application/json'
       }
     });
     
     console.log('O*NET API Response Status:', response.status);
+    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
+    console.log('O*NET API Response Data:', JSON.stringify(response.data));
 
-    const xmlData = response.data;
-    const jsonData = await parseXml(xmlData);
-
-    console.log('Parsed JSON Data:', JSON.stringify(jsonData, null, 2));
-
-    res.status(200).json(jsonData);
+    res.status(200).json(response.data);
   } catch (error) {
     console.error('Error in Vercel Function:', error.message);
     console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
@@ -45,4 +35,4 @@ module.exports = async (req, res) => {
       details: error.response ? error.response.data : 'No details available' 
     });
   }
-};
+}
