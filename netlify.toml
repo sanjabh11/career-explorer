@@ -1,7 +1,11 @@
-   [build]
-     functions = "netlify/functions"
+[dev]
+  command = "npm start"
+  targetPort = 3000
+  port = 8888
+  publish = "build"
+  functionsPort = 9000
 
-   [[redirects]]
-     from = "/*"
-     to = "/index.html"
-     status = 200
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

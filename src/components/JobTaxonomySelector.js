@@ -3,7 +3,6 @@ import { searchOccupations, getOccupationDetails } from '../services/OnetService
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box, Input } from '@mui/material';
-
 const apoCategoriesPercentages = {
   tasks: {
     "Analyzing Data": 65, "Preparing Reports": 55, "Coordinating Activities": 40,
@@ -52,6 +51,10 @@ const calculateAPO = (item, category) => {
   console.log(`Calculating APO for item: "${itemName}" in category: "${category}"`);
   console.log(`Full text: "${fullText}"`);
 
+  if (category === 'Technology Skills') {
+    return apoCategoriesPercentages['Technology Skills']['Development Environment'] || 55;
+  }
+
   for (const [key, value] of Object.entries(apoCategoriesPercentages[category] || {})) {
     if (fullText.includes(key.toLowerCase())) {
       console.log(`Matched "${key}" in category "${category}" with APO ${value}%`);
@@ -98,11 +101,12 @@ const JobTaxonomySelector = () => {
     setError(null);
     try {
       const occupations = await searchOccupations(searchTerm);
-      console.log('Search results:', occupations);
+      console.log('Processed search results:', occupations);
       setResults(occupations);
     } catch (error) {
       console.error('Error searching occupations:', error);
       setError('An error occurred while searching. Please try again.');
+      setResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -283,7 +287,6 @@ const JobTaxonomySelector = () => {
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
   };
-
   return (
     <Container>
       <Typography variant="h4" gutterBottom>O*NET Career Explorer</Typography>
@@ -305,7 +308,7 @@ const JobTaxonomySelector = () => {
       {error && (
         <Typography color="error" variant="body2" gutterBottom>{error}</Typography>
       )}
-      {results.length > 0 && (
+      {results && results.length > 0 ? (
         <List>
           {results.map(occupation => (
             <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
@@ -313,6 +316,8 @@ const JobTaxonomySelector = () => {
             </ListItem>
           ))}
         </List>
+      ) : (
+        <Typography variant="body2">No results found.</Typography>
       )}
       {selectedOccupation && (
         <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
@@ -334,3 +339,4 @@ const JobTaxonomySelector = () => {
 };
 
 export default JobTaxonomySelector;
+  

@@ -18,6 +18,8 @@ exports.handler = async function(event, context) {
   const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
   
   console.log('Requesting URL:', url);
+  console.log('Username:', process.env.ONET_USERNAME);
+  console.log('Password:', process.env.ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
   try {
     const response = await axios.get(url, {
@@ -30,10 +32,11 @@ exports.handler = async function(event, context) {
       }
     });
     
-    console.log('O*NET API Response:', response.data);
+    console.log('O*NET API Response Status:', response.status);
 
     const xmlData = response.data;
     const jsonData = await parseXml(xmlData);
+
     console.log('Parsed JSON Data:', JSON.stringify(jsonData, null, 2));
 
     return {
@@ -43,7 +46,7 @@ exports.handler = async function(event, context) {
         "Access-Control-Allow-Headers": "Content-Type",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ occupations: jsonData.occupations.occupation || [] })
+      body: JSON.stringify(jsonData)
     };
   } catch (error) {
     console.error('Error in Netlify Function:', error.message);

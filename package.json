@@ -7,7 +7,8 @@
           "start": "react-scripts --openssl-legacy-provider start",
           "build": "react-scripts --openssl-legacy-provider build",
           "test": "react-scripts test",
-          "eject": "react-scripts eject"
+          "eject": "react-scripts eject",
+          "dev": "netlify dev"
      },
      "proxy": "https://services.onetcenter.org",
      "keywords": [],
@@ -17,7 +18,7 @@
           "@emotion/react": "^11.13.0",
           "@emotion/styled": "^11.13.0",
           "@mui/material": "^5.16.7",
-          "axios": "^1.7.3",
+          "axios": "^1.7.6",
           "dotenv": "^16.4.5",
           "file-saver": "^2.0.5",
           "http-proxy-middleware": "^3.0.0",
@@ -50,6 +51,12 @@
      },
      "devDependencies": {
           "@babel/core": "^7.25.2",
-          "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+          "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+          "eslint": "^8.57.0",
+          "eslint-config-react-app": "^7.0.1",
+          "eslint-plugin-import": "^2.29.1",
+          "eslint-plugin-jsx-a11y": "^6.9.0",
+          "eslint-plugin-react": "^7.35.0",
+          "eslint-plugin-react-hooks": "^4.6.2"
      }
 }

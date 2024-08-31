@@ -7,15 +7,25 @@ const api = axios.create({
 export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
-    const response = await api.get(`/.netlify/functions/onet-search?keyword=${encodeURIComponent(keyword)}`);
+    const response = await api.get(`/api/onet-search?keyword=${encodeURIComponent(keyword)}`);
     console.log('Search Occupations Response:', response.data);
 
-    return response.data.occupations || [];
+    if (response.data && response.data.occupations && response.data.occupations.occupation) {
+      return response.data.occupations.occupation.map(occ => ({
+        code: occ.code[0],
+        title: occ.title[0],
+        tags: occ.tags[0].$,
+        href: occ.$.href
+      }));
+    }
+
+    return [];
   } catch (error) {
-    console.error('Error searching occupations:', error.response ? error.response.data : error.message);
+    console.error('Error searching occupations:', error);
     throw error;
   }
 };
+
 
 export const getOccupationDetails = async (occupationCode) => {
   try {
@@ -25,14 +35,12 @@ export const getOccupationDetails = async (occupationCode) => {
 
     const processedData = {
       ...response.data.details,
-      tasks: processElementData(response.data.tasks, 'tasks'),
-      knowledge: processElementData(response.data.knowledge, 'knowledge'),
-      skills: processElementData(response.data.skills, 'skills'),
-      abilities: processElementData(response.data.abilities, 'abilities'),
-      technologies: processElementData(response.data.technology_skills, 'Technology Skills')
+      tasks: processElementData(response.data.tasks),
+      knowledge: processElementData(response.data.knowledge),
+      skills: processElementData(response.data.skills),
+      abilities: processElementData(response.data.abilities),
+      technologies: processElementData(response.data.technology_skills)
     };
-
-    console.log('Processed Occupation Details:', processedData);
 
     return processedData;
   } catch (error) {
@@ -82,7 +90,7 @@ const processElementData = (data, category) => {
 
 const fetchData = async (endpoint) => {
   try {
-    const response = await api.get(`/.netlify/functions/onet-proxy${endpoint}`);
+    const response = await api.get(`${endpoint}`);
     console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
@@ -98,11 +106,11 @@ const fetchData = async (endpoint) => {
 export const getOccupationDetailsWithTasks = async (formattedCode) => {
   try {
     const [tasks, knowledge, skills, abilities, technologies] = await Promise.all([
-      fetchData(`/ws/online/occupations/${formattedCode}/details/tasks`),
-      fetchData(`/ws/online/occupations/${formattedCode}/details/knowledge`),
-      fetchData(`/ws/online/occupations/${formattedCode}/details/skills`),
-      fetchData(`/ws/online/occupations/${formattedCode}/details/abilities`),
-      fetchData(`/ws/online/occupations/${formattedCode}/details/technology_skills`)
+      fetchData(`/onet-details?code=${formattedCode}&type=tasks`),
+      fetchData(`/onet-details?code=${formattedCode}&type=knowledge`),
+      fetchData(`/onet-details?code=${formattedCode}&type=skills`),
+      fetchData(`/onet-details?code=${formattedCode}&type=abilities`),
+      fetchData(`/onet-details?code=${formattedCode}&type=technology_skills`)
     ]);
 
     console.log('Processed API Responses:', {
@@ -126,8 +134,10 @@ export const getOccupationDetailsWithTasks = async (formattedCode) => {
   }
 };
 
-export default {
+const OnetService = {
   searchOccupations,
   getOccupationDetails,
   getOccupationDetailsWithTasks
 };
+
+export default OnetService;
