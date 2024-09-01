@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+   "NEXT_PUBLIC_ONET_USERNAME": "NEXT_PUBLIC_ONET_USERNAME",
+  "NEXT_PUBLIC_ONET_PASSWORD": "NEXT_PUBLIC_ONET_PASSWORD"
+  }
+}
