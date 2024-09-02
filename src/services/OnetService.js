@@ -1,36 +1,26 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || '',
-});
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/.netlify/functions/api';
 
 export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
-    const response = await api.get(`/api/onet-search?keyword=${encodeURIComponent(keyword)}`);
-    console.log('Search Occupations Response:', response.data);
-
-    if (response.data && response.data.occupations && response.data.occupations.occupation) {
-      return response.data.occupations.occupation.map(occ => ({
-        code: occ.code[0],
-        title: occ.title[0],
-        tags: occ.tags[0].$,
-        href: occ.$.href
-      }));
-    }
-
-    return [];
+    const response = await axios.get(`${API_BASE_URL}/onet-search`, {
+      params: { keyword }
+    });
+    return response.data;
   } catch (error) {
     console.error('Error searching occupations:', error);
     throw error;
   }
 };
 
-
 export const getOccupationDetails = async (occupationCode) => {
   try {
     console.log('Fetching occupation details for:', occupationCode);
-    const response = await api.get(`/.netlify/functions/onet-details?code=${encodeURIComponent(occupationCode)}`);
+    const response = await axios.get(`${API_BASE_URL}/onet-details`, {
+      params: { code: occupationCode }
+    });
     console.log('Occupation Details Response:', response.data);
 
     const processedData = {
@@ -90,7 +80,7 @@ const processElementData = (data, category) => {
 
 const fetchData = async (endpoint) => {
   try {
-    const response = await api.get(`${endpoint}`);
+    const response = await axios.get(`${API_BASE_URL}${endpoint}`);
     console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {

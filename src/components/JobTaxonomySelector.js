@@ -3,6 +3,7 @@ import { searchOccupations, getOccupationDetails } from '../services/OnetService
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box, Input } from '@mui/material';
+
 const apoCategoriesPercentages = {
   tasks: {
     "Analyzing Data": 65, "Preparing Reports": 55, "Coordinating Activities": 40,
@@ -88,6 +89,7 @@ const JobTaxonomySelector = () => {
   const [selectedOccupation, setSelectedOccupation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [customAPOData, setCustomAPOData] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -99,12 +101,17 @@ const JobTaxonomySelector = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const occupations = await searchOccupations(searchTerm);
-      console.log('Processed search results:', occupations);
-      setResults(occupations);
+      const response = await searchOccupations(searchTerm);
+      console.log('Processed search results:', response);
+      const occupations = response.occupations.occupation;
+      if (occupations && occupations.length > 0) {
+        setResults(occupations);
+      } else {
+        setResults([]);
+      }
     } catch (error) {
       console.error('Error searching occupations:', error);
-      setError('An error occurred while searching. Please try again.');
+      setError(`An error occurred while searching: ${error.message}`);
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -116,7 +123,7 @@ const JobTaxonomySelector = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const details = await getOccupationDetails(occupation.code);
+      const details = await getOccupationDetails(occupation.code[0]);
       console.log('Occupation details received:', details);
       setSelectedOccupation({ ...occupation, ...details });
     } catch (error) {
@@ -136,6 +143,7 @@ const JobTaxonomySelector = () => {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      setCustomAPOData(jsonData);
     };
     reader.readAsArrayBuffer(file);
   };
@@ -239,9 +247,9 @@ const JobTaxonomySelector = () => {
 
     // Add occupation title and description
     XLSX.utils.sheet_add_json(worksheet, [
-      { A: 'Occupation', B: selectedOccupation.title },
-      { A: 'Description', B: selectedOccupation.description },
-      { A: 'O*NET-SOC Code', B: selectedOccupation.code },
+      { A: 'Occupation', B: selectedOccupation.title[0] },
+      { A: 'Description', B: selectedOccupation.description[0] },
+      { A: 'O*NET-SOC Code', B: selectedOccupation.code[0] },
       { A: 'Updated', B: selectedOccupation.updated?.year },
       {}  // Empty row for spacing
     ], { skipHeader: true, origin: 'A1' });
@@ -283,8 +291,9 @@ const JobTaxonomySelector = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
+    saveAs(blob, `${selectedOccupation.title[0]}_details.xlsx`);
   };
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>O*NET Career Explorer</Typography>
@@ -309,8 +318,8 @@ const JobTaxonomySelector = () => {
       {results && results.length > 0 ? (
         <List>
           {results.map(occupation => (
-            <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
-              <ListItemText primary={occupation.title} />
+            <ListItem button key={occupation.code[0]} onClick={() => handleOccupationSelect(occupation)}>
+              <ListItemText primary={occupation.title[0]} />
             </ListItem>
           ))}
         </List>
@@ -319,7 +328,7 @@ const JobTaxonomySelector = () => {
       )}
       {selectedOccupation && (
         <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
-          <Typography variant="h5">{selectedOccupation.title}</Typography>
+          <Typography variant="h5">{selectedOccupation.title[0]}</Typography>
           {renderAdditionalDetails(selectedOccupation)}
           {renderAutomationAnalysis(selectedOccupation)}
           {renderList('Tasks', selectedOccupation.tasks, 'tasks')}
@@ -337,4 +346,3 @@ const JobTaxonomySelector = () => {
 };
 
 export default JobTaxonomySelector;
-  
