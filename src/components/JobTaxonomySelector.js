@@ -88,7 +88,6 @@ const JobTaxonomySelector = () => {
   const [selectedOccupation, setSelectedOccupation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [customAPOData, setCustomAPOData] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -137,7 +136,6 @@ const JobTaxonomySelector = () => {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-      setCustomAPOData(jsonData);
     };
     reader.readAsArrayBuffer(file);
   };
