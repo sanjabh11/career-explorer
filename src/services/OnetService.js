@@ -1,133 +1,77 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/.netlify/functions/api';
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_BASE_URL || '/.netlify/functions',
+});
 
 export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
-    const response = await axios.get(`${API_BASE_URL}/onet-search`, {
-      params: { keyword }
-    });
-    return response.data;
+    const response = await api.get(`/onet-search?keyword=${encodeURIComponent(keyword)}`);
+    console.log('Search response:', response.data);
+    return response.data.occupations || [];
   } catch (error) {
     console.error('Error searching occupations:', error);
+    console.error('Error details:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error headers:', error.response?.headers);
     throw error;
   }
 };
 
-export const getOccupationDetails = async (occupationCode) => {
+export const getOccupationDetails = async (code) => {
   try {
-    console.log('Fetching occupation details for:', occupationCode);
-    const response = await axios.get(`${API_BASE_URL}/onet-details`, {
-      params: { code: occupationCode }
-    });
-    console.log('Occupation Details Response:', response.data);
-
+    console.log('Fetching occupation details for code:', code);
+    const response = await api.get(`/onet-details?code=${encodeURIComponent(code)}`);
+    console.log('Raw details response:', JSON.stringify(response.data, null, 2));
+    
+    // Extract relevant data from the response
+    const details = response.data.details || {};
     const processedData = {
-      ...response.data.details,
-      tasks: processElementData(response.data.tasks),
-      knowledge: processElementData(response.data.knowledge),
-      skills: processElementData(response.data.skills),
-      abilities: processElementData(response.data.abilities),
-      technologies: processElementData(response.data.technology_skills)
+      description: details.description?.[0] || '',
+      code: details.code?.[0] || '',
+      title: details.title?.[0] || '',
+      tasks: (response.data.tasks?.task || []).map(task => ({
+        name: task.statement?.[0] || '',
+        description: task.statement?.[0] || ''
+      })),
+      knowledge: (response.data.knowledge?.element || []).map(item => ({
+        name: item.name?.[0] || '',
+        description: item.description?.[0] || '',
+        value: item.score?.[0]?._ || '',
+        scale: item.score?.[0]?.$.scale_name || ''
+      })),
+      skills: (response.data.skills?.element || []).map(item => ({
+        name: item.name?.[0] || '',
+        description: item.description?.[0] || '',
+        value: item.score?.[0]?._ || '',
+        scale: item.score?.[0]?.$.scale_name || ''
+      })),
+      abilities: (response.data.abilities?.element || []).map(item => ({
+        name: item.name?.[0] || '',
+        description: item.description?.[0] || '',
+        value: item.score?.[0]?._ || '',
+        scale: item.score?.[0]?.$.scale_name || ''
+      })),
+      technologies: (response.data.technology_skills?.category || []).flatMap(category => 
+        (category.example || []).map(ex => ({
+          name: typeof ex === 'string' ? ex : ex._ || '',
+          description: category.title?.[0]?._ || '',
+          commodityCode: category.title?.[0]?.$.id || '',
+          hotTechnology: typeof ex === 'object' && 'hot_technology' in ex,
+          inDemand: false // This information is not provided in the current data structure
+        }))
+      ).filter(tech => tech.name !== ''),
+      sample_of_reported_job_titles: details.sample_of_reported_job_titles?.[0]?.title?.filter(Boolean) || [],
+      updated: details.updated?.[0]?.year?.[0] || ''
     };
-
+    
+    console.log('Processed occupation details:', JSON.stringify(processedData, null, 2));
     return processedData;
   } catch (error) {
-    console.error('Error fetching occupation details:', error.response ? error.response.data : error.message);
+    console.error('Error fetching occupation details:', error.response?.data || error.message);
     throw error;
   }
 };
 
-const processElementData = (data, category) => {
-  if (!data) return [];
-  
-  if (Array.isArray(data.element)) {
-    return data.element.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      value: item.score?.value,
-      scale: item.score?.scale
-    }));
-  }
-  
-  if (Array.isArray(data.task)) {
-    return data.task.map(item => ({
-      id: item.id,
-      name: item.statement,
-      description: item.statement,
-      value: item.score?.value,
-      scale: item.score?.scale
-    }));
-  }
-  
-  if (category === 'Technology Skills' && Array.isArray(data.category)) {
-    return data.category.flatMap(category => 
-      category.example.map(item => ({
-        id: item.id || item.name,
-        name: item.name,
-        description: category.title?.name || 'No description available',
-        value: item.hot_technology ? "Hot Technology" : "Standard Technology",
-        scale: undefined
-      }))
-    ).filter(item => item.name);
-  }
-  
-  console.warn('Unhandled data structure:', data);
-  return [];
-};
-
-const fetchData = async (endpoint) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}${endpoint}`);
-    console.log(`Raw response for ${endpoint}:`, JSON.stringify(response.data, null, 2));
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.status === 422) {
-      console.warn(`No data available for ${endpoint}`);
-    } else {
-      console.error(`Error fetching ${endpoint}:`, error.response ? error.response.data : error.message);
-    }
-    return null;
-  }
-};
-
-export const getOccupationDetailsWithTasks = async (formattedCode) => {
-  try {
-    const [tasks, knowledge, skills, abilities, technologies] = await Promise.all([
-      fetchData(`/onet-details?code=${formattedCode}&type=tasks`),
-      fetchData(`/onet-details?code=${formattedCode}&type=knowledge`),
-      fetchData(`/onet-details?code=${formattedCode}&type=skills`),
-      fetchData(`/onet-details?code=${formattedCode}&type=abilities`),
-      fetchData(`/onet-details?code=${formattedCode}&type=technology_skills`)
-    ]);
-
-    console.log('Processed API Responses:', {
-      tasks: processElementData(tasks, 'tasks'),
-      knowledge: processElementData(knowledge, 'knowledge'),
-      skills: processElementData(skills, 'skills'),
-      abilities: processElementData(abilities, 'abilities'),
-      technologies: processElementData(technologies, 'Technology Skills')
-    });
-
-    return {
-      tasks: processElementData(tasks, 'tasks') || [],
-      knowledge: processElementData(knowledge, 'knowledge') || [],
-      skills: processElementData(skills, 'skills') || [],
-      abilities: processElementData(abilities, 'abilities') || [],
-      technologies: processElementData(technologies, 'Technology Skills') || []
-    };
-  } catch (error) {
-    console.error('Error fetching occupation details:', error);
-    throw error;
-  }
-};
-
-const OnetService = {
-  searchOccupations,
-  getOccupationDetails,
-  getOccupationDetailsWithTasks
-};
-
-export default OnetService;
+// ... keep the rest of the file as is ...

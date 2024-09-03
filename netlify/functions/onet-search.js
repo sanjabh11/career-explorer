@@ -6,6 +6,9 @@ const parseXml = util.promisify(parseString);
 
 exports.handler = async function(event, context) {
   console.log('Function invoked with event:', JSON.stringify(event));
+  console.log('Username:', process.env.ONET_USERNAME);
+  console.log('Password set:', !!process.env.ONET_PASSWORD);
+
   const { keyword } = event.queryStringParameters || {};
   
   if (!keyword) {
@@ -18,10 +21,9 @@ exports.handler = async function(event, context) {
   const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
   
   console.log('Requesting URL:', url);
-  console.log('Username:', process.env.ONET_USERNAME);
-  console.log('Password:', process.env.ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
   try {
+    console.log('Sending request to O*NET API...');
     const response = await axios.get(url, {
       auth: {
         username: process.env.ONET_USERNAME,
@@ -33,6 +35,7 @@ exports.handler = async function(event, context) {
     });
     
     console.log('O*NET API Response Status:', response.status);
+    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
 
     const xmlData = response.data;
     const jsonData = await parseXml(xmlData);
@@ -43,19 +46,22 @@ exports.handler = async function(event, context) {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(jsonData)
+      body: JSON.stringify({ occupations: jsonData.occupations.occupation || [] })
     };
   } catch (error) {
     console.error('Error in Netlify Function:', error.message);
     console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
+    console.error('Error config:', JSON.stringify(error.config));
     return {
       statusCode: error.response ? error.response.status : 500,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
