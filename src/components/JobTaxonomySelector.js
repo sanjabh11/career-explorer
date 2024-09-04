@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
-import { TextField, Button, CircularProgress, Typography, List, ListItem, ListItemText, Container, Paper, Box, Input } from '@mui/material';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { DropdownNavigation } from './DropdownNavigation';
+import { SearchAutocomplete } from './SearchAutocomplete';
+import { InteractiveChart } from './InteractiveChart';
+import { CollapsibleSection } from './CollapsibleSection';
 
 const apoCategoriesPercentages = {
   tasks: {
@@ -86,6 +92,7 @@ const JobTaxonomySelector = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [customAPOData, setCustomAPOData] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -140,67 +147,61 @@ const JobTaxonomySelector = () => {
   const renderList = (title, items, category) => {
     if (!items || items.length === 0) {
       return (
-        <Box my={2}>
-          <Typography variant="h6">{title}</Typography>
-          <Typography variant="body2">No {title.toLowerCase()} information is currently available for this occupation.</Typography>
-        </Box>
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold">{title}</h3>
+          <p className="text-gray-600">No {title.toLowerCase()} information is currently available for this occupation.</p>
+        </div>
       );
     }
     const averageAPO = getAverageAPO(items, category);
     return (
-      <Box my={2}>
-        <Typography variant="h6">{title}</Typography>
-        <Typography variant="body2">Average APO: {averageAPO.toFixed(2)}%</Typography>
-        <List>
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold">{title}</h3>
+        <p className="text-gray-600">Average APO: {averageAPO.toFixed(2)}%</p>
+        <ul>
           {items.map((item, index) => (
-            <ListItem key={index}>
-              <ListItemText
-                primary={<strong>{item.name || 'Unnamed Item'}</strong>}
-                secondary={
+            <li key={index} className="mb-2">
+              <div className="font-semibold">{item.name || 'Unnamed Item'}</div>
+              <div>
+                {item.description && (
+                  <span>{item.description}<br /></span>
+                )}
+                {item.value && (
+                  <span>
+                    Value: {item.value}, 
+                    Scale: {item.scale}
+                    <br />
+                  </span>
+                )}
+                {category === 'technologies' && (
                   <>
-                    {item.description && (
-                      <span>{item.description}<br /></span>
-                    )}
-                    {item.value && (
-                      <span>
-                        Value: {item.value}, 
-                        Scale: {item.scale}
-                        <br />
-                      </span>
-                    )}
-                    {category === 'technologies' && (
-                      <>
-                        Commodity Code: {item.commodityCode || 'N/A'}<br />
-                        Hot Technology: {item.hotTechnology ? 'Yes' : 'No'}<br />
-                      </>
-                    )}
-                    APO: {calculateAPO(item, category).toFixed(2)}%
+                    Commodity Code: {item.commodityCode || 'N/A'}<br />
+                    Hot Technology: {item.hotTechnology ? 'Yes' : 'No'}<br />
                   </>
-                }
-              />
-            </ListItem>
+                )}
+                APO: {calculateAPO(item, category).toFixed(2)}%
+              </div>
+            </li>
           ))}
-        </List>
-      </Box>
+        </ul>
+      </div>
     );
   };
 
   const renderAdditionalDetails = (details) => {
     return (
-      <Box my={2}>
-        <Typography variant="h6">Additional Details</Typography>
-        <Typography variant="body2"><strong>Description:</strong> {details.description}</Typography>
-        <Typography variant="body2"><strong>O*NET-SOC Code:</strong> {details.code}</Typography>
-        <Typography variant="h6">Sample Job Titles:</Typography>
-        <List>
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold">Additional Details</h3>
+        <p><strong>Description:</strong> {details.description}</p>
+        <p><strong>O*NET-SOC Code:</strong> {details.code}</p>
+        <h4 className="text-lg font-semibold">Sample Job Titles:</h4>
+        <ul>
           {details.sample_of_reported_job_titles.map((title, index) => (
-            <ListItem key={index}>
-              <ListItemText primary={title} />
-            </ListItem>
+            <li key={index}>{title}</li>
           ))}
-        </List>
-        <Typography variant="body2"><strong>Updated:</strong> {details.updated}</Typography>
-      </Box>
+        </ul>
+        <p><strong>Updated:</strong> {details.updated}</p>
+      </div>
     );
   };
 
@@ -233,15 +234,15 @@ const JobTaxonomySelector = () => {
     console.log(`Overall APO: ${overallAPO.toFixed(2)}%`);
 
     return (
-      <Box my={2}>
-        <Typography variant="h6">Automation Exposure Analysis</Typography>
-        <Typography variant="body2">Overall APO: {overallAPO.toFixed(2)}%</Typography>
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold">Automation Exposure Analysis</h3>
+        <p className="text-gray-600">Overall APO: {overallAPO.toFixed(2)}%</p>
         {categories.map((category, index) => (
-          <Typography key={category.name} variant="body2">
+          <p key={category.name} className="text-gray-600">
             {category.name} APO: {categoryAPOs[index].toFixed(2)}%
-          </Typography>
+          </p>
         ))}
-      </Box>
+      </div>
     );
   };
 
@@ -273,52 +274,70 @@ const JobTaxonomySelector = () => {
     saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
   };
 
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    // You might want to update the search or filter results based on the selected category
+  };
+
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>O*NET Career Explorer</Typography>
-      <TextField
-        label="Search for occupations"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <Button variant="contained" color="primary" onClick={handleSearch} disabled={isLoading}>
-        {isLoading ? <CircularProgress size={24} /> : 'Search'}
-      </Button>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">O*NET Career Explorer</h1>
+      <DropdownNavigation onSelect={handleCategorySelect} />
+      <div className="flex gap-2 mb-4">
+        <SearchAutocomplete
+          onSelect={(term) => setSearchTerm(term)}
+          onSearch={handleSearch}
+        />
+        <Button onClick={handleSearch} disabled={isLoading}>
+          {isLoading ? 'Searching...' : 'Search'}
+        </Button>
+      </div>
       <Input
         type="file"
         onChange={handleFileUpload}
-        style={{ marginLeft: '10px' }}
+        className="mb-4"
       />
       {error && (
-        <Typography color="error" variant="body2" gutterBottom>{error}</Typography>
+        <p className="text-red-500 mb-4">{error}</p>
       )}
       {results.length > 0 && (
-        <List>
+        <ul className="mb-4">
           {results.map(occupation => (
-            <ListItem button key={occupation.code} onClick={() => handleOccupationSelect(occupation)}>
-              <ListItemText primary={occupation.title} />
-            </ListItem>
+            <li key={occupation.code} className="mb-2">
+              <Button variant="ghost" onClick={() => handleOccupationSelect(occupation)}>
+                {occupation.title}
+              </Button>
+            </li>
           ))}
-        </List>
+        </ul>
       )}
       {selectedOccupation && (
-        <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
-          <Typography variant="h5">{selectedOccupation.title}</Typography>
+        <Card className="p-4">
+          <h2 className="text-2xl font-bold mb-4">{selectedOccupation.title}</h2>
+          <InteractiveChart data={selectedOccupation} />
           {renderAdditionalDetails(selectedOccupation)}
           {renderAutomationAnalysis(selectedOccupation)}
-          {renderList('Tasks', selectedOccupation.tasks, 'tasks')}
-          {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
-          {renderList('Skills', selectedOccupation.skills, 'skills')}
-          {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
-          {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
-          <Button variant="contained" color="secondary" onClick={downloadExcel} style={{ marginTop: '16px' }}>
+          <CollapsibleSection title="Tasks">
+            {renderList('Tasks', selectedOccupation.tasks, 'tasks')}
+          </CollapsibleSection>
+          <CollapsibleSection title="Knowledge">
+            {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
+          </CollapsibleSection>
+          <CollapsibleSection title="Skills">
+            {renderList('Skills', selectedOccupation.skills, 'skills')}
+          </CollapsibleSection>
+          <CollapsibleSection title="Abilities">
+            {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
+          </CollapsibleSection>
+          <CollapsibleSection title="Technologies">
+            {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
+          </CollapsibleSection>
+          <Button onClick={downloadExcel} className="mt-4">
             Download as Excel
           </Button>
-        </Paper>
+        </Card>
       )}
-    </Container>
+    </div>
   );
 };
 
