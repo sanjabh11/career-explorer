@@ -11,13 +11,13 @@ export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
     if (!keyword.trim()) {
-      return []; // Return an empty array for empty searches
+      return [];
     }
     const response = await api.get(`/onet-search`, {
       params: { keyword: encodeURIComponent(keyword.trim()) }
     });
     console.log('Search response:', response.data);
-    return response.data.career || []; // Change this to match the actual response structure
+    return response.data.career || [];
   } catch (error) {
     console.error('Error searching occupations:', error);
     console.error('Error details:', error.response?.data);
