@@ -1,20 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from "@/components/ui/input"
 import { searchOccupations } from '../services/OnetService';
+import debounce from 'lodash/debounce';
 
 export const SearchAutocomplete = ({ onSelect, onSearch }) => {
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState([]);
 
+  const debouncedSearch = useCallback(
+    debounce(async (value) => {
+      if (value.trim()) {
+        try {
+          const results = await searchOccupations(value);
+          setOptions(results);
+        } catch (error) {
+          console.error('Error in debounced search:', error);
+          setOptions([]);
+        }
+      } else {
+        setOptions([]);
+      }
+    }, 300),
+    []
+  );
+
   useEffect(() => {
-    if (inputValue) {
-      searchOccupations(inputValue).then(results => {
-        setOptions(results);
-      });
-    } else {
+    debouncedSearch(inputValue);
+    return () => debouncedSearch.cancel();
+  }, [inputValue, debouncedSearch]);
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    if (!value.trim()) {
       setOptions([]);
     }
-  }, [inputValue]);
+  };
 
   return (
     <div className="relative">
@@ -22,7 +43,7 @@ export const SearchAutocomplete = ({ onSelect, onSearch }) => {
         type="text"
         placeholder="Search for occupations"
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={handleInputChange}
       />
       {options.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
@@ -33,7 +54,7 @@ export const SearchAutocomplete = ({ onSelect, onSearch }) => {
               onClick={() => {
                 onSelect(option.title);
                 onSearch();
-                setInputValue('');
+                setInputValue(option.title);
                 setOptions([]);
               }}
             >

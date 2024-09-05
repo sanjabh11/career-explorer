@@ -1,70 +1,53 @@
 const axios = require('axios');
-const { parseString } = require('xml2js');
-const util = require('util');
-
-const parseXml = util.promisify(parseString);
 
 exports.handler = async function(event, context) {
-  console.log('Function invoked with event:', JSON.stringify(event));
-  console.log('Username:', process.env.ONET_USERNAME);
-  console.log('Password set:', !!process.env.ONET_PASSWORD);
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  };
 
-  const { keyword } = event.queryStringParameters || {};
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
+  const { keyword } = event.queryStringParameters;
   
-  if (!keyword) {
+  if (!keyword || !keyword.trim()) {
     return {
       statusCode: 400,
+      headers,
       body: JSON.stringify({ error: 'Keyword is required' })
     };
   }
 
-  const url = `https://services.onetcenter.org/ws/online/search?keyword=${encodeURIComponent(keyword)}`;
-  
-  console.log('Requesting URL:', url);
-
   try {
-    console.log('Sending request to O*NET API...');
-    const response = await axios.get(url, {
+    const response = await axios.get(`https://services.onetcenter.org/ws/mnm/search`, {
+      params: {
+        keyword: keyword.trim(),
+        client: process.env.ONET_USERNAME
+      },
       auth: {
         username: process.env.ONET_USERNAME,
         password: process.env.ONET_PASSWORD
-      },
-      headers: {
-        'Accept': 'application/xml'
       }
     });
-    
-    console.log('O*NET API Response Status:', response.status);
-    console.log('O*NET API Response Headers:', JSON.stringify(response.headers));
-
-    const xmlData = response.data;
-    const jsonData = await parseXml(xmlData);
-
-    console.log('Parsed JSON Data:', JSON.stringify(jsonData, null, 2));
 
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ occupations: jsonData.occupations.occupation || [] })
+      headers,
+      body: JSON.stringify(response.data)
     };
   } catch (error) {
-    console.error('Error in Netlify Function:', error.message);
-    console.error('Error response:', error.response ? JSON.stringify(error.response.data) : 'No response');
-    console.error('Error config:', JSON.stringify(error.config));
+    console.error('Error:', error);
     return {
-      statusCode: error.response ? error.response.status : 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ error: error.message, details: error.response ? error.response.data : 'No details available' })
+      statusCode: error.response?.status || 500,
+      headers,
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

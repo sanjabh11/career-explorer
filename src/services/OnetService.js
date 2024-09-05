@@ -2,14 +2,22 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || '/.netlify/functions',
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
 
 export const searchOccupations = async (keyword) => {
   try {
     console.log('Searching occupations with keyword:', keyword);
-    const response = await api.get(`/onet-search?keyword=${encodeURIComponent(keyword)}`);
+    if (!keyword.trim()) {
+      return []; // Return an empty array for empty searches
+    }
+    const response = await api.get(`/onet-search`, {
+      params: { keyword: encodeURIComponent(keyword.trim()) }
+    });
     console.log('Search response:', response.data);
-    return response.data.occupations || [];
+    return response.data.career || []; // Change this to match the actual response structure
   } catch (error) {
     console.error('Error searching occupations:', error);
     console.error('Error details:', error.response?.data);
@@ -22,7 +30,9 @@ export const searchOccupations = async (keyword) => {
 export const getOccupationDetails = async (code) => {
   try {
     console.log('Fetching occupation details for code:', code);
-    const response = await api.get(`/onet-details?code=${encodeURIComponent(code)}`);
+    const response = await api.get(`/onet-details`, {
+      params: { code: encodeURIComponent(code) }
+    });
     console.log('Raw details response:', JSON.stringify(response.data, null, 2));
     
     // Extract relevant data from the response

@@ -104,6 +104,11 @@ const JobTaxonomySelector = () => {
     setIsLoading(true);
     setError(null);
     try {
+      if (!searchTerm.trim()) {
+        setResults([]);
+        setIsLoading(false);
+        return;
+      }
       const occupations = await searchOccupations(searchTerm);
       setResults(occupations);
     } catch (error) {
