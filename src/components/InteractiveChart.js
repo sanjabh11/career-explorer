@@ -1,6 +1,12 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+const getAverageAPO = (items, category) => {
+  if (!items || items.length === 0) return 0;
+  const totalAPO = items.reduce((sum, item) => sum + (item.APO || 0), 0);
+  return totalAPO / items.length;
+};
+
 export const InteractiveChart = ({ data }) => {
   const chartData = [
     { name: 'Tasks', APO: data.tasks ? getAverageAPO(data.tasks, 'tasks') : 0 },

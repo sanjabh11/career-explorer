@@ -4,9 +4,9 @@
      "description": "This project is a tool for exploring career information using the O*NET database.",
      "main": "src/index.js",
      "scripts": {
-          "start": "react-scripts --openssl-legacy-provider start",
-          "build": "react-scripts --openssl-legacy-provider build",
-          "test": "react-scripts test",
+          "start": "craco start",
+          "build": "craco build",
+          "test": "craco test",
           "eject": "react-scripts eject",
           "dev": "netlify dev"
      },
@@ -15,17 +15,27 @@
      "author": "",
      "license": "ISC",
      "dependencies": {
+          "@craco/craco": "^7.1.0",
           "@emotion/react": "^11.13.0",
           "@emotion/styled": "^11.13.0",
           "@mui/material": "^5.16.7",
+          "@radix-ui/react-accordion": "^1.2.0",
+          "@radix-ui/react-select": "^2.1.1",
+          "@radix-ui/react-slot": "^1.1.0",
           "axios": "^1.7.6",
+          "class-variance-authority": "^0.7.0",
+          "clsx": "^2.1.1",
           "dotenv": "^16.4.5",
           "file-saver": "^2.0.5",
           "http-proxy-middleware": "^3.0.0",
           "install": "^0.13.0",
+          "lucide-react": "^0.438.0",
           "react": "^18.3.1",
           "react-dom": "^18.3.1",
           "react-scripts": "^5.0.1",
+          "recharts": "^2.12.7",
+          "tailwind-merge": "^2.5.2",
+          "tailwindcss-animate": "^1.0.7",
           "timers-browserify": "^2.0.12",
           "web-vitals": "^4.2.3",
           "xlsx": "^0.18.5",
@@ -52,11 +62,16 @@
      "devDependencies": {
           "@babel/core": "^7.25.2",
           "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+          "@shadcn/ui": "^0.0.4",
+          "@types/file-saver": "^2.0.7",
+          "autoprefixer": "^10.4.20",
           "eslint": "^8.57.0",
           "eslint-config-react-app": "^7.0.1",
           "eslint-plugin-import": "^2.29.1",
           "eslint-plugin-jsx-a11y": "^6.9.0",
           "eslint-plugin-react": "^7.35.0",
-          "eslint-plugin-react-hooks": "^4.6.2"
+          "eslint-plugin-react-hooks": "^4.6.2",
+          "postcss": "^8.4.44",
+          "tailwindcss": "^3.4.10"
      }
 }

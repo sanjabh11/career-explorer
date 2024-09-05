@@ -4,11 +4,11 @@ import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { DropdownNavigation } from './DropdownNavigation';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { InteractiveChart } from './InteractiveChart';
-import { CollapsibleSection } from './CollapsibleSection';
 
 const apoCategoriesPercentages = {
   tasks: {
@@ -158,28 +158,27 @@ const JobTaxonomySelector = () => {
       <div className="mb-4">
         <h3 className="text-xl font-semibold">{title}</h3>
         <p className="text-gray-600">Average APO: {averageAPO.toFixed(2)}%</p>
-        <ul>
+        <ul className="space-y-2">
           {items.map((item, index) => (
-            <li key={index} className="mb-2">
+            <li key={index} className="bg-gray-100 p-3 rounded-md">
               <div className="font-semibold">{item.name || 'Unnamed Item'}</div>
-              <div>
+              <div className="text-sm text-gray-700">
                 {item.description && (
-                  <span>{item.description}<br /></span>
+                  <p>{item.description}</p>
                 )}
                 {item.value && (
-                  <span>
+                  <p>
                     Value: {item.value}, 
                     Scale: {item.scale}
-                    <br />
-                  </span>
+                  </p>
                 )}
                 {category === 'technologies' && (
                   <>
-                    Commodity Code: {item.commodityCode || 'N/A'}<br />
-                    Hot Technology: {item.hotTechnology ? 'Yes' : 'No'}<br />
+                    <p>Commodity Code: {item.commodityCode || 'N/A'}</p>
+                    <p>Hot Technology: {item.hotTechnology ? 'Yes' : 'No'}</p>
                   </>
                 )}
-                APO: {calculateAPO(item, category).toFixed(2)}%
+                <p>APO: {calculateAPO(item, category).toFixed(2)}%</p>
               </div>
             </li>
           ))}
@@ -190,12 +189,12 @@ const JobTaxonomySelector = () => {
 
   const renderAdditionalDetails = (details) => {
     return (
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold">Additional Details</h3>
-        <p><strong>Description:</strong> {details.description}</p>
-        <p><strong>O*NET-SOC Code:</strong> {details.code}</p>
-        <h4 className="text-lg font-semibold">Sample Job Titles:</h4>
-        <ul>
+      <div className="mb-4 bg-gray-100 p-4 rounded-md">
+        <h3 className="text-xl font-semibold mb-2">Additional Details</h3>
+        <p className="mb-2"><strong>Description:</strong> {details.description}</p>
+        <p className="mb-2"><strong>O*NET-SOC Code:</strong> {details.code}</p>
+        <h4 className="text-lg font-semibold mb-2">Sample Job Titles:</h4>
+        <ul className="list-disc list-inside mb-2">
           {details.sample_of_reported_job_titles.map((title, index) => (
             <li key={index}>{title}</li>
           ))}
@@ -234,11 +233,11 @@ const JobTaxonomySelector = () => {
     console.log(`Overall APO: ${overallAPO.toFixed(2)}%`);
 
     return (
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold">Automation Exposure Analysis</h3>
-        <p className="text-gray-600">Overall APO: {overallAPO.toFixed(2)}%</p>
+      <div className="mb-4 bg-gray-100 p-4 rounded-md">
+        <h3 className="text-xl font-semibold mb-2">Automation Exposure Analysis</h3>
+        <p className="text-lg font-semibold mb-2">Overall APO: {overallAPO.toFixed(2)}%</p>
         {categories.map((category, index) => (
-          <p key={category.name} className="text-gray-600">
+          <p key={category.name} className="mb-1">
             {category.name} APO: {categoryAPOs[index].toFixed(2)}%
           </p>
         ))}
@@ -276,7 +275,8 @@ const JobTaxonomySelector = () => {
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    // You might want to update the search or filter results based on the selected category
+    // TODO: Implement category filtering logic
+    console.log(`Selected category: ${category}`);
   };
 
   return (
@@ -301,40 +301,58 @@ const JobTaxonomySelector = () => {
         <p className="text-red-500 mb-4">{error}</p>
       )}
       {results.length > 0 && (
-        <ul className="mb-4">
-          {results.map(occupation => (
-            <li key={occupation.code} className="mb-2">
-              <Button variant="ghost" onClick={() => handleOccupationSelect(occupation)}>
-                {occupation.title}
-              </Button>
-            </li>
-          ))}
-        </ul>
+        <Card className="mb-4">
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-2">Search Results</h2>
+            <ul className="space-y-2">
+              {results.map(occupation => (
+                <li key={occupation.code}>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleOccupationSelect(occupation)}
+                    className="w-full text-left"
+                  >
+                    {occupation.title}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
       {selectedOccupation && (
-        <Card className="p-4">
-          <h2 className="text-2xl font-bold mb-4">{selectedOccupation.title}</h2>
-          <InteractiveChart data={selectedOccupation} />
-          {renderAdditionalDetails(selectedOccupation)}
-          {renderAutomationAnalysis(selectedOccupation)}
-          <CollapsibleSection title="Tasks">
-            {renderList('Tasks', selectedOccupation.tasks, 'tasks')}
-          </CollapsibleSection>
-          <CollapsibleSection title="Knowledge">
-            {renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}
-          </CollapsibleSection>
-          <CollapsibleSection title="Skills">
-            {renderList('Skills', selectedOccupation.skills, 'skills')}
-          </CollapsibleSection>
-          <CollapsibleSection title="Abilities">
-            {renderList('Abilities', selectedOccupation.abilities, 'abilities')}
-          </CollapsibleSection>
-          <CollapsibleSection title="Technologies">
-            {renderList('Technologies', selectedOccupation.technologies, 'technologies')}
-          </CollapsibleSection>
-          <Button onClick={downloadExcel} className="mt-4">
-            Download as Excel
-          </Button>
+        <Card>
+          <CardContent>
+            <h2 className="text-2xl font-bold mb-4">{selectedOccupation.title}</h2>
+            <InteractiveChart data={selectedOccupation} />
+            {renderAdditionalDetails(selectedOccupation)}
+            {renderAutomationAnalysis(selectedOccupation)}
+            <Accordion type="single" collapsible className="mb-4">
+              <AccordionItem value="tasks">
+                <AccordionTrigger>Tasks</AccordionTrigger>
+                <AccordionContent>{renderList('Tasks', selectedOccupation.tasks, 'tasks')}</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="knowledge">
+                <AccordionTrigger>Knowledge</AccordionTrigger>
+                <AccordionContent>{renderList('Knowledge', selectedOccupation.knowledge, 'knowledge')}</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="skills">
+                <AccordionTrigger>Skills</AccordionTrigger>
+                <AccordionContent>{renderList('Skills', selectedOccupation.skills, 'skills')}</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="abilities">
+                <AccordionTrigger>Abilities</AccordionTrigger>
+                <AccordionContent>{renderList('Abilities', selectedOccupation.abilities, 'abilities')}</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="technologies">
+                <AccordionTrigger>Technologies</AccordionTrigger>
+                <AccordionContent>{renderList('Technologies', selectedOccupation.technologies, 'technologies')}</AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            <Button onClick={downloadExcel} className="mt-4">
+              Download as Excel
+            </Button>
+          </CardContent>
         </Card>
       )}
     </div>
