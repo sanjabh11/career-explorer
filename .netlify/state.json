@@ -1,0 +1,20 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Chandigarh",
+			"country": {
+				"code": "IN",
+				"name": "India"
+			},
+			"subdivision": {
+				"code": "CH",
+				"name": "Chandigarh"
+			},
+			"timezone": "Asia/Kolkata",
+			"latitude": 30.7339,
+			"longitude": 76.7889
+		},
+		"timestamp": 1725715663179
+	},
+	"siteId": "b88730dc-625d-40e9-ba7c-27df228952f6"
+}
