@@ -14,7 +14,6 @@ import { Occupation, OccupationDetails, TopCareer, CategoryData, DetailData } fr
 import LoadingSpinner from './LoadingSpinner';
 import { getColorForAPO } from '@/utils/dataProcessing';
 import styles from '@/styles/EnhancedDashboard.module.css';
-import Image from 'next/image';
 import AutomationPotentialChart from './AutomationPotentialChart';
 
 const CategoryAccordion: React.FC<CategoryData> = ({ name, icon, apo, details }) => {
@@ -60,7 +59,7 @@ const EnhancedDashboard: React.FC = () => {
   const [selectedOccupation, setSelectedOccupation] = useState<OccupationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [chartType, setChartType] = useState('bar');
+  const [chartType, setChartType] = useState<'bar' | 'pie' | 'radar'>('bar');
 
   const handleSearch = async () => {
     setIsLoading(true);
@@ -164,15 +163,15 @@ const EnhancedDashboard: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <span className="font-bold text-lg">Overall APO:</span>
                   <div className="flex items-center">
-                    <Progress value={selectedOccupation.overallAPO} className={`w-32 mr-2 ${getColorForAPO(selectedOccupation.overallAPO)}`} />
-                    <span className="text-2xl font-bold">{selectedOccupation.overallAPO}%</span>
+                    <Progress value={selectedOccupation.overallAPO ?? 0} className={`w-32 mr-2 ${getColorForAPO(selectedOccupation.overallAPO ?? 0)}`} />
+                    <span className="text-2xl font-bold">{selectedOccupation.overallAPO?.toFixed(2)}%</span>
                   </div>
                 </div>
                 <AutomationPotentialChart
                   occupationData={selectedOccupation}
-                  chartType={chartType as 'bar' | 'pie' | 'radar'}
+                  chartType={chartType}
                 />
-                <Select onValueChange={(value) => setChartType(value)}>
+                <Select onValueChange={(value) => setChartType(value as 'bar' | 'pie' | 'radar')}>
                   <SelectTrigger className="w-[180px] mt-4">
                     <SelectValue placeholder="Select chart type" />
                   </SelectTrigger>
@@ -189,7 +188,7 @@ const EnhancedDashboard: React.FC = () => {
                   </TabsList>
                   <TabsContent value="categories">
                     <div className="w-full">
-                      {selectedOccupation.categories.map((category, index) => (
+                      {selectedOccupation.categories?.map((category, index) => (
                         <CategoryAccordion
                           key={index}
                           name={category.name}
@@ -202,7 +201,7 @@ const EnhancedDashboard: React.FC = () => {
                   </TabsContent>
                   <TabsContent value="details">
                     <ScrollArea className={styles.detailedView}>
-                      {selectedOccupation.categories.map((category, index) => (
+                      {selectedOccupation.categories?.map((category, index) => (
                         <div key={index} className="mb-4">
                           <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
                           {category.details.map((item, itemIndex) => (

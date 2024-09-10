@@ -18,7 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["jest", "node", "react", "react-dom"]
   },
   "include": ["src"]
 }

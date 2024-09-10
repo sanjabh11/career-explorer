@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bar, Pie, Radar } from 'react-chartjs-2';
-import { Chart as ChartJS, registerables, ChartOptions } from 'chart.js';
+import { Chart as ChartJS, registerables, ChartOptions, ChartType } from 'chart.js';
 import { OccupationDetails } from '@/types/onet';
 
 ChartJS.register(...registerables);
@@ -11,12 +11,13 @@ interface AutomationPotentialChartProps {
 }
 
 const AutomationPotentialChart: React.FC<AutomationPotentialChartProps> = ({ occupationData, chartType }) => {
+  const categories = occupationData.categories || [];
   const data = {
-    labels: occupationData.categories.map(category => category.name),
+    labels: categories.map(category => category.name),
     datasets: [
       {
         label: 'APO',
-        data: occupationData.categories.map(category => category.apo * 100),
+        data: categories.map(category => category.apo * 100),
         backgroundColor: [
           'rgba(255, 99, 132, 0.6)',
           'rgba(54, 162, 235, 0.6)',
@@ -36,7 +37,7 @@ const AutomationPotentialChart: React.FC<AutomationPotentialChartProps> = ({ occ
     ],
   };
 
-  const baseOptions: ChartOptions<'bar' | 'pie' | 'radar'> = {
+  const baseOptions: ChartOptions<ChartType> = {
     responsive: true,
     plugins: {
       legend: {
@@ -46,12 +47,6 @@ const AutomationPotentialChart: React.FC<AutomationPotentialChartProps> = ({ occ
         display: true,
         text: 'Automation Potential by Category',
       },
-    },
-    onClick: (event, elements) => {
-      if (elements.length === 0) return;
-      const index = elements[0].index;
-      const category = occupationData.categories[index];
-      console.log('Clicked category:', category);
     },
   };
 
