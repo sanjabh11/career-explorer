@@ -1,37 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // Removed useEffect and useCallback as they are not used
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Occupation } from '@/types/onet';
 
 interface SearchAutocompleteProps {
-  onSelect: (occupation: Occupation) => void;
-  onSearch: (term: string) => void;
   options: Occupation[];
+  onSelect: (occupation: Occupation) => void;
+  onSearch: (searchTerm: string) => void;
 }
 
-export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({ onSelect, onSearch, options }) => {
+const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({ options, onSelect, onSearch }) => {
   const [inputValue, setInputValue] = useState('');
-  const [filteredOptions, setFilteredOptions] = useState<Occupation[]>([]);
-
-  useEffect(() => {
-    console.log('Options updated:', options);
-    setFilteredOptions(options);
-  }, [options]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    setFilteredOptions(
-      options.filter((option) =>
-        option.title.toLowerCase().includes(value.toLowerCase())
-      )
-    );
-  };
-
-  const handleOptionClick = (occupation: Occupation) => {
-    setInputValue(occupation.title);
-    onSelect(occupation);
-    setFilteredOptions([]);
+    onSearch(value); // Call onSearch with the current input value
   };
 
   const handleSearch = () => {
@@ -39,24 +23,25 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({ onSelect
   };
 
   return (
-    <div className="relative">
-      <div className="flex gap-2">
-        <Input
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Search for occupations..."
-          className="w-full"
-        />
-        <Button onClick={handleSearch}>Search</Button>
-      </div>
-      {filteredOptions.length > 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-60 overflow-auto">
-          {filteredOptions.map((option) => (
+    <div className="relative w-3/4">
+      <Input
+        type="text"
+        placeholder="Search for occupations"
+        value={inputValue}
+        onChange={handleInputChange}
+        className="w-full"
+      />
+      <Button onClick={handleSearch}>Search</Button>
+      {options.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {options.map((option, index) => (
             <li
-              key={option.code}
-              onClick={() => handleOptionClick(option)}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
+              key={index}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => {
+                onSelect(option); // Ensure onSelect is called correctly
+                setInputValue(option.title);
+              }}
             >
               {option.title}
             </li>
@@ -66,3 +51,5 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({ onSelect
     </div>
   );
 };
+
+export default SearchAutocomplete;

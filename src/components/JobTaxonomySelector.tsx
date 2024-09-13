@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { searchOccupations, getOccupationDetails } from '../services/OnetService';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownNavigation } from './DropdownNavigation';
-import { SearchAutocomplete } from './SearchAutocomplete';
+import SearchAutocomplete from './SearchAutocomplete';
 import { InteractiveChart } from './InteractiveChart';
 import { Occupation, OccupationDetails } from '@/types/onet';
 
@@ -88,13 +88,11 @@ const getAverageAPO = (items: any[], category: string): number => {
 };
 
 const JobTaxonomySelector: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [results, setResults] = useState<Occupation[]>([]);
   const [selectedOccupation, setSelectedOccupation] = useState<OccupationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [customAPOData, setCustomAPOData] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -102,22 +100,18 @@ const JobTaxonomySelector: React.FC = () => {
     };
   }, []);
 
-  const handleSearch = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      if (!searchTerm.trim()) {
+  const handleSearch = async (searchTerm: string) => {
+    if (typeof searchTerm === 'string' && searchTerm.trim() !== '') {
+      try {
+        const results = await searchOccupations(searchTerm);
+        setResults(results);
+      } catch (error) {
+        console.error('Error fetching search results:', error);
         setResults([]);
-        setIsLoading(false);
-        return;
       }
-      const occupations = await searchOccupations(searchTerm);
-      setResults(occupations);
-    } catch (error) {
-      console.error('Error searching occupations:', error);
-      setError('An error occurred while searching. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.log("Invalid search term");
+      setResults([]);
     }
   };
 
@@ -145,9 +139,7 @@ const JobTaxonomySelector: React.FC = () => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-      setCustomAPOData(jsonData);
+      // TODO: Handle custom APO data
     };
     reader.readAsArrayBuffer(file);
   };
@@ -282,8 +274,6 @@ const JobTaxonomySelector: React.FC = () => {
   };
 
   const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    // TODO: Implement category filtering logic
     console.log(`Selected category: ${category}`);
   };
 
@@ -294,10 +284,16 @@ const JobTaxonomySelector: React.FC = () => {
       <div className="flex gap-2 mb-4">
         <SearchAutocomplete
           options={results}
-          onSelect={(occupation: Occupation) => setSearchTerm(occupation.title)}
-          onSearch={handleSearch}
+          onSelect={(occupation: Occupation) => {
+            setSearchTerm(occupation.title);
+            handleOccupationSelect(occupation);
+          }}
+          onSearch={(searchTerm: string) => {
+            setSearchTerm(searchTerm);
+            handleSearch(searchTerm);
+          }}
         />
-        <Button onClick={handleSearch} disabled={isLoading}>
+        <Button onClick={() => handleSearch(searchTerm)} disabled={isLoading}>
           {isLoading ? 'Searching...' : 'Search'}
         </Button>
       </div>
@@ -309,28 +305,8 @@ const JobTaxonomySelector: React.FC = () => {
       {error && (
         <p className="text-red-500 mb-4">{error}</p>
       )}
-      {results.length > 0 && (
-        <Card className="mb-4">
-          <CardContent>
-            <h2 className="text-xl font-semibold mb-2">Search Results</h2>
-            <ul className="space-y-2">
-              {results.map(occupation => (
-                <li key={occupation.code}>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleOccupationSelect(occupation)}
-                    className="w-full text-left"
-                  >
-                    {occupation.title}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
       {selectedOccupation && (
-        <Card>
+        <Card className="mt-4">
           <CardContent>
             <h2 className="text-2xl font-bold mb-4">{selectedOccupation.title}</h2>
             <InteractiveChart data={selectedOccupation} />
