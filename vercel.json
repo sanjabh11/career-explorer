@@ -3,18 +3,18 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
-    },
-    {
-      "src": "netlify/functions/*.js",
-      "use": "@vercel/node"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
     }
   ],
-  "functions": {
-    "api/*.js": {
-      "includeFiles": "netlify/functions/**"
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
-  },
+  ],
   "env": {
     "ONET_USERNAME": "ONET_USERNAME",
     "ONET_PASSWORD": "ONET_PASSWORD"
