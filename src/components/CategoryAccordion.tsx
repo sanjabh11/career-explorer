@@ -1,39 +1,45 @@
-import React from 'react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DetailData } from '@/types/onet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { getColorForAPO } from '@/utils/dataProcessing';
+import styles from '@/styles/EnhancedDashboard.module.css';
+import { CategoryData } from '@/types/onet';
 
-interface CategoryAccordionProps {
-  category: string;
-  details: DetailData[];
-}
+const CategoryAccordion: React.FC<{ category: CategoryData }> = ({ category }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const CategoryAccordion: React.FC<CategoryAccordionProps> = ({ category, details }) => {
   return (
-    <Accordion type="single" collapsible className="mb-4">
-      <AccordionItem value={category}>
-        <AccordionTrigger>{category}</AccordionTrigger>
-        <AccordionContent>
-          {details.map((detail, index) => (
-            <div key={index} className="mb-2">
-              <h4 className="font-semibold">{detail.name}</h4>
-              <p className="text-sm mb-1">{detail.description}</p>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Progress value={detail.value * 100} className="mt-1" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Automation Potential: {(detail.value * 100).toFixed(2)}%</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+    <div className={styles.categoryAccordion}>
+      <button
+        className={styles.accordionButton}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center">
+          {category.icon}
+          <span className="ml-2 font-medium">{category.name}</span>
+        </div>
+        <div className="flex items-center">
+          <Progress value={category.apo} className={`w-24 mr-2 ${getColorForAPO(category.apo)}`} />
+          <span className="mr-2 text-sm font-semibold">{category.apo}% APO</span>
+          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
+      </button>
+      {isOpen && (
+        <ScrollArea className={styles.accordionContent}>
+          {category.details.map((item, index) => (
+            <div key={index} className="mb-4">
+              <p className="font-medium">{item.name}</p>
+              <p className="text-sm text-gray-600">{item.description}</p>
+              <div className="flex items-center mt-1">
+                <Progress value={item.value} className={`w-24 mr-2 ${getColorForAPO(item.value)}`} />
+                <span className="text-xs">Value: {item.value}</span>
+              </div>
             </div>
           ))}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+        </ScrollArea>
+      )}
+    </div>
   );
 };
 

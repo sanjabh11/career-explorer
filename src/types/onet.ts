@@ -1,3 +1,5 @@
+// src/types/onet.ts
+
 export interface APOCategories {
   tasks: Record<string, number>;
   knowledge: Record<string, number>;
@@ -25,8 +27,8 @@ export interface OccupationDetails extends Occupation {
   description: string;
   sample_of_reported_job_titles: string[];
   updated: string;
-  overallAPO?: number;
-  categories?: CategoryData[];
+  overallAPO: number; // Changed from optional to required
+  categories: CategoryData[]; // Changed from optional to required
   tasks: APOItem[];
   knowledge: APOItem[];
   skills: APOItem[];
@@ -38,7 +40,7 @@ export interface CategoryData {
   name: string;
   apo: number;
   details: DetailData[];
-  icon?: string;
+  icon?: React.ReactNode; // Changed from string to React.ReactNode
 }
 
 export interface DetailData {

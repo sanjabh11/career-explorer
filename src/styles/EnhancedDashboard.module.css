@@ -3,7 +3,7 @@
 }
 
 .dashboardTitle {
-  @apply text-4xl font-bold mb-2 text-center text-gray-800;
+  @apply text-3xl md:text-4xl font-bold mb-2 text-center text-gray-800;
 }
 
 .dashboardSubtitle {
@@ -11,7 +11,7 @@
 }
 
 .searchContainer {
-  @apply mb-6 flex space-x-2;
+  @apply mb-6 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2;
 }
 
 .mainContent {
@@ -35,17 +35,9 @@
 }
 
 .accordionContent {
-  @apply h-64 mt-2 pl-6;
+  @apply max-h-64 mt-2 pl-6 overflow-y-auto;
 }
 
 .detailedView {
-  @apply h-96;
-}
-
-.footer {
-  @apply mt-8 text-center text-sm text-gray-500;
-}
-
-.chartContainer {
-  @apply h-64 w-full bg-gray-200 flex items-center justify-center;
+  @apply max-h-96 overflow-y-auto;
 }
