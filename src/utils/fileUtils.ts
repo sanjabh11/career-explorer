@@ -1,6 +1,6 @@
 import { saveAs } from 'file-saver';
 import Papa from 'papaparse';
-import { OccupationDetails, CategoryData, DetailData } from '@/types/onet';
+import { OccupationDetails, CategoryData, APOItem } from '@/types/onet';
 
 export const downloadTemplate = (occupationDetails: OccupationDetails) => {
   const csvContent = Papa.unparse({
@@ -36,7 +36,7 @@ export const parseUploadedFile = (file: File): Promise<OccupationDetails> => {
             };
           }
 
-          const detail: DetailData = {
+          const detail: APOItem = {
             name: row.Name,
             description: row.Description,
             value: parseFloat(row.Value),

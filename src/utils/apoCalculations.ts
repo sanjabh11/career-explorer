@@ -52,8 +52,17 @@ const APO_CATEGORIES = {
     return Object.values(categoryAPOs).reduce((a, b) => a + b, 0) / Object.values(categoryAPOs).length;
   };
   
-  export const getAverageAPO = (items: any[], category: string): number => {
-    if (!items || items.length === 0) return 0;
-    const totalAPO = items.reduce((sum, item) => sum + calculateAPO(item, category), 0);
-    return totalAPO / items.length;
+  export const getAverageAPO = (items: any[] | undefined, category: string): number => {
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      console.log(`No valid items found for category: ${category}`);
+      return 0;
+    }
+    const totalAPO = items.reduce((sum, item) => {
+      const itemAPO = calculateAPO(item, category);
+      console.log(`Item: "${item.name || item.title}", APO: ${itemAPO}`);
+      return sum + itemAPO;
+    }, 0);
+    const averageAPO = totalAPO / items.length;
+    console.log(`Average APO for ${category}: ${averageAPO.toFixed(2)}%`);
+    return averageAPO;
   };

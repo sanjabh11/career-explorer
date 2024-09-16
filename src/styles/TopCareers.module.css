@@ -1,0 +1,27 @@
+.topCareersCard {
+    @apply mb-6;
+  }
+  
+  .careerList {
+    @apply space-y-2;
+  }
+  
+  .careerItem {
+    @apply flex justify-between items-center;
+  }
+  
+  .careerDetails {
+    @apply flex items-center;
+  }
+  .careerProgress {
+    @apply w-24 mr-2;
+  }
+  
+  .apoValue {
+    @apply text-sm font-semibold mr-2;
+  }
+  
+  .infoButton {
+    @apply p-1;
+  }
+  

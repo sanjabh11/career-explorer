@@ -56,11 +56,11 @@ const EnhancedDashboard: React.FC = () => {
   };
 
   const topCareers: TopCareer[] = [
-    { title: "Software Developer", apo: 65 },
-    { title: "Data Scientist", apo: 72 },
-    { title: "UX Designer", apo: 58 },
-    { title: "Network Administrator", apo: 61 },
-    { title: "Cybersecurity Analyst", apo: 70 },
+    { title: "Software Developer", apo: 65, code: "15-1252.00" },
+    { title: "Data Scientist", apo: 72, code: "15-2051.00" },
+    { title: "UX Designer", apo: 58, code: "27-1021.00" },
+    { title: "Network Administrator", apo: 61, code: "15-1244.00" },
+    { title: "Cybersecurity Analyst", apo: 70, code: "15-1212.00" },
   ];
 
   return (
@@ -106,10 +106,10 @@ const EnhancedDashboard: React.FC = () => {
                   <span className="font-bold text-lg">Overall APO:</span>
                   <div className="flex items-center">
                     <Progress 
-                      value={selectedOccupation.overallAPO} 
-                      className={`w-32 mr-2 ${getColorForAPO(selectedOccupation.overallAPO)}`} 
+                      value={selectedOccupation.overallAPO ?? 0} 
+                      className={`w-32 mr-2 ${getColorForAPO(selectedOccupation.overallAPO ?? 0)}`} 
                     />
-                    <span className="text-2xl font-bold">{selectedOccupation.overallAPO.toFixed(2)}%</span>
+                    <span className="text-2xl font-bold">{(selectedOccupation.overallAPO ?? 0).toFixed(2)}%</span>
                   </div>
                 </div>
                 <AutomationPotentialChart

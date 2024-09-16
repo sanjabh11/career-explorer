@@ -1,0 +1,52 @@
+.container {
+    @apply mx-auto p-4 bg-gray-50 min-h-screen;
+    max-width: 1400px; /* Adjust this value as needed */
+  }
+  
+  .title {
+    @apply text-4xl font-bold mb-2 text-center text-gray-800;
+  }
+  
+  .subtitle {
+    @apply text-center text-gray-600 mb-6;
+  }
+  
+  .searchContainer {
+    @apply relative mb-6;
+  }
+  
+  .searchInput {
+    @apply w-full pr-10;
+  }
+  
+  .clearButton {
+    @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600;
+  }
+  
+  .loading {
+    @apply text-center text-lg font-semibold my-4;
+  }
+  
+  .error {
+    @apply text-red-500 text-center my-4;
+  }
+  
+  .mainContent {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+  }
+  
+  .occupationDetails {
+    @apply lg:col-span-2;
+  }
+  
+  .sidebarContent {
+    @apply space-y-6;
+  }
+  
+  .apoProgress {
+    @apply bg-green-500;
+  }
+  
+  .footer {
+    @apply mt-8 text-center text-sm text-gray-500;
+  }

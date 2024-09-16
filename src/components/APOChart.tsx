@@ -1,44 +1,28 @@
-// src/components/APOChart.tsx
+   // src/components/APOChart.tsx
 
-import React from 'react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+   import React from 'react';
+   import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+   interface APOChartProps {
+     data: { category: string; apo: number }[];
+   }
 
-interface APOChartProps {
-  data: {
-    category: string;
-    apo: number;
-  }[];
-}
+   const APOChart: React.FC<APOChartProps> = ({ data }) => {
+     return (
+       <ResponsiveContainer width="100%" height={300}>
+         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+           <CartesianGrid strokeDasharray="3 3" />
+           <XAxis type="number" domain={[0, 100]} />
+           <YAxis dataKey="category" type="category" width={100} />
+           <Tooltip formatter={(value: number) => `${value.toFixed(2)}%`} />
+           <Bar dataKey="apo" fill="#add8e6" label={{ position: 'right', formatter: (value: number) => `${value.toFixed(2)}%` }}>
+             {data.map((entry, index) => (
+               <Cell key={`cell-${index}`} />
+             ))}
+           </Bar>
+         </BarChart>
+       </ResponsiveContainer>
+     );
+   };
 
-const APOChart: React.FC<APOChartProps> = ({ data }) => {
-  const chartData = {
-    labels: data.map(item => item.category),
-    datasets: [
-      {
-        label: 'APO (%)',
-        data: data.map(item => item.apo),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Automation Potential by Category',
-      },
-    },
-  };
-
-  return <Bar data={chartData} options={options} />;
-};
-
-export default APOChart;
+   export default APOChart;

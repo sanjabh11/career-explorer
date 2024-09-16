@@ -18,6 +18,9 @@ export const useOccupationSearch = () => {
       try {
         const searchResults = await searchOccupations(term);
         setResults(searchResults);
+        if (searchResults.length === 0) {
+          setError('No results found. Please try a different search term.');
+        }
       } catch (error) {
         console.error('Error fetching search results:', error);
         setError('Failed to fetch search results. Please try again.');
@@ -35,7 +38,7 @@ export const useOccupationSearch = () => {
     setError(null);
     try {
       const details = await getOccupationDetails(occupation.code);
-      setSelectedOccupation({ ...occupation, ...details });
+      setSelectedOccupation(details);
     } catch (error) {
       console.error('Error fetching occupation details:', error);
       setError('Failed to fetch occupation details. Please try again.');

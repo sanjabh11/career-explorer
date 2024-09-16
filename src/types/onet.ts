@@ -9,10 +9,10 @@ export interface APOCategories {
 }
 
 export interface APOItem {
-  name?: string;
+  name: string;
   title?: string;
-  description?: string;
-  value?: number;
+  description: string;
+  value: number;
   scale?: string;
   commodityCode?: string;
   hotTechnology?: boolean;
@@ -27,8 +27,8 @@ export interface OccupationDetails extends Occupation {
   description: string;
   sample_of_reported_job_titles: string[];
   updated: string;
-  overallAPO: number; // Changed from optional to required
-  categories: CategoryData[]; // Changed from optional to required
+  overallAPO?: number;
+  categories: CategoryData[];
   tasks: APOItem[];
   knowledge: APOItem[];
   skills: APOItem[];
@@ -39,17 +39,12 @@ export interface OccupationDetails extends Occupation {
 export interface CategoryData {
   name: string;
   apo: number;
-  details: DetailData[];
-  icon?: React.ReactNode; // Changed from string to React.ReactNode
-}
-
-export interface DetailData {
-  name: string;
-  description: string;
-  value: number;
+  details: APOItem[];
+  icon?: React.ReactNode;
 }
 
 export interface TopCareer {
   title: string;
   apo: number;
+  code: string;
 }

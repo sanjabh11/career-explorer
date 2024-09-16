@@ -1,4 +1,6 @@
-import React, { useCallback } from 'react';
+// src/components/JobTaxonomySelector.tsx
+
+import React, { useCallback, useEffect } from 'react';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,14 @@ import { Occupation, OccupationDetails } from '@/types/onet';
 import { useOccupationSearch } from '../hooks/useOccupationSearch';
 import { useDebounce } from '../hooks/useDebounce';
 import { calculateAPO, getAverageAPO } from '../utils/apoCalculations';
-import { X, Search, Briefcase, Book, Brain, BarChart2, Cpu } from 'lucide-react';
+import { X, Search, Briefcase, Book, Brain, BarChart2, Cpu, Upload, Download } from 'lucide-react';
+import TopCareers from './TopCareers';
+import styles from '@/styles/JobTaxonomySelector.module.css';
+
+const calculateOverallAPO = (categoryAPOs: { apo: number }[]) => {
+  const totalAPO = categoryAPOs.reduce((sum, category) => sum + category.apo, 0);
+  return (totalAPO / categoryAPOs.length).toFixed(2);
+};
 
 const JobTaxonomySelector: React.FC = () => {
   const {
@@ -27,6 +36,17 @@ const JobTaxonomySelector: React.FC = () => {
   } = useOccupationSearch();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      handleSearch(debouncedSearchTerm);
+    }
+  }, [debouncedSearchTerm, handleSearch]);
+
+  const calculateOverallAPO = (categoryAPOs: { apo: number }[]) => {
+    const totalAPO = categoryAPOs.reduce((sum, category) => sum + category.apo, 0);
+    return (totalAPO / categoryAPOs.length).toFixed(2);
+  };
 
   const renderAccordionContent = useCallback((title: string, items: any[], category: string) => {
     const averageAPO = getAverageAPO(items, category);
@@ -56,7 +76,7 @@ const JobTaxonomySelector: React.FC = () => {
       </div>
     );
   }, []);
-
+  
   const renderAutomationAnalysis = useCallback((occupation: OccupationDetails) => {
     const categories = [
       { name: 'Tasks', items: occupation.tasks, category: 'tasks' },
@@ -83,151 +103,156 @@ const JobTaxonomySelector: React.FC = () => {
     );
   }, []);
 
-  const downloadExcel = useCallback(() => {
-    if (!selectedOccupation) return;
+  const renderSearchResults = () => {
+    if (isLoading) {
+      return <div className={styles.loading}>Searching...</div>;
+    }
 
-    const data = [
-      { title: 'Tasks', items: selectedOccupation.tasks, category: 'tasks' },
-      { title: 'Knowledge', items: selectedOccupation.knowledge, category: 'knowledge' },
-      { title: 'Skills', items: selectedOccupation.skills, category: 'skills' },
-      { title: 'Abilities', items: selectedOccupation.abilities, category: 'abilities' },
-      { title: 'Technologies', items: selectedOccupation.technologies, category: 'technologies' }
-    ];
+    if (error) {
+      return <div className={styles.error}>{error}</div>;
+    }
 
-    const worksheet = XLSX.utils.json_to_sheet([]);
-    data.forEach(section => {
-      XLSX.utils.sheet_add_json(worksheet, [{ title: section.title }], { skipHeader: true, origin: -1 });
-      const itemsWithAPO = section.items.map(item => ({
-        ...item,
-        APO: calculateAPO(item, section.category)
-      }));
-      XLSX.utils.sheet_add_json(worksheet, itemsWithAPO, { origin: -1 });
-    });
+    if (results.length > 0) {
+      return (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Search Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {results.map((occupation) => (
+                <li key={occupation.code} className="flex justify-between items-center">
+                  <span>{occupation.title}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOccupationSelect(occupation)}
+                  >
+                    View Details
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      );
+    }
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Occupation Details');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, `${selectedOccupation.title}_details.xlsx`);
-  }, [selectedOccupation]);
+    return null;
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">O*NET Career Explorer</h1>
-      <div className="mb-6">
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="Search for occupations or skills"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-10"
-          />
-          {searchTerm && (
-            <button
-              className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              onClick={() => setSearchTerm('')}
-            >
-              <X className="h-4 w-4 text-gray-400" />
-            </button>
-          )}
-        </div>
-        {results.length > 0 && (
-          <ul className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-            {results.map((occupation: Occupation) => (
-              <li
-                key={occupation.code}
-                className="p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleOccupationSelect(occupation)}
-              >
-                {occupation.title}
-              </li>
-            ))}
-          </ul>
-        )}
+    <div className={styles.container}>
+      <h1 className={styles.title} style={{ color: '#00008B' }}>GenAI Skill-Set Exposure Tool</h1>
+      <p className={styles.subtitle}>Data sourced from <a href="https://www.onetcenter.org/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">O*NET Resource Center</a></p>
+      
+      <div className={styles.searchContainer}>
+        <Input
+          type="text"
+          placeholder="Search for occupations or skills"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className={styles.searchInput}
+        />
+        <Button onClick={() => handleSearch(searchTerm)}>
+          <Search className="mr-2 h-4 w-4" /> Search
+        </Button>
       </div>
-      {error && (
-        <p className="text-red-500 mb-4">{error}</p>
-      )}
-      {selectedOccupation && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+
+      {renderSearchResults()}
+
+      <div className={styles.mainContent}>
+        <div className={styles.occupationDetails}>
+          {selectedOccupation && (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>{selectedOccupation.title}</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                  <span>{selectedOccupation.title}</span>
+                  <span className="text-sm font-normal text-gray-500">O*NET-SOC Code: {selectedOccupation.code}</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="mb-4">{selectedOccupation.description}</p>
-                <h3 className="text-xl font-semibold mb-2">Sample Job Titles:</h3>
-                <ul className="grid grid-cols-2 gap-2 mb-4">
-                  {selectedOccupation.sample_of_reported_job_titles.map((title, index) => (
-                    <li key={index} className="bg-gray-100 p-2 rounded">{title}</li>
-                  ))}
-                </ul>
-                <p><strong>O*NET-SOC Code:</strong> {selectedOccupation.code}</p>
-                <p><strong>Updated:</strong> {selectedOccupation.updated}</p>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-bold text-lg">Overall APO:</span>
+                  <div className="flex items-center">
+                    <Progress 
+                      value={parseFloat(calculateOverallAPO(renderAutomationAnalysis(selectedOccupation).props.children[1].props.children.props.data))} 
+                      className={`w-32 mr-2 ${styles.apoProgress}`} 
+                    />
+                    <span className="text-2xl font-bold">
+                      {calculateOverallAPO(renderAutomationAnalysis(selectedOccupation).props.children[1].props.children.props.data)}%
+                    </span>
+                  </div>
+                </div>
+                {renderAutomationAnalysis(selectedOccupation)}
+                <Accordion type="single" collapsible className="mb-4">
+                  <AccordionItem value="tasks">
+                    <AccordionTrigger className="flex items-center">
+                      <Briefcase className="mr-2" /> Tasks
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {renderAccordionContent('Tasks', selectedOccupation.tasks, 'tasks')}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="knowledge">
+                    <AccordionTrigger className="flex items-center">
+                      <Book className="mr-2" /> Knowledge
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {renderAccordionContent('Knowledge', selectedOccupation.knowledge, 'knowledge')}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="skills">
+                    <AccordionTrigger className="flex items-center">
+                      <Brain className="mr-2" /> Skills
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {renderAccordionContent('Skills', selectedOccupation.skills, 'skills')}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="abilities">
+                    <AccordionTrigger className="flex items-center">
+                      <BarChart2 className="mr-2" /> Abilities
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {renderAccordionContent('Abilities', selectedOccupation.abilities, 'abilities')}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="technologies">
+                    <AccordionTrigger className="flex items-center">
+                      <Cpu className="mr-2" /> Technologies
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {renderAccordionContent('Technologies', selectedOccupation.technologies, 'technologies')}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </CardContent>
             </Card>
-            {renderAutomationAnalysis(selectedOccupation)}
-          </div>
-          <div>
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Download Data</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={downloadExcel} className="w-full">
-                  Download as Excel
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          )}
         </div>
-      )}
-      {selectedOccupation && (
-        <Accordion type="single" collapsible className="mb-4">
-          <AccordionItem value="tasks">
-            <AccordionTrigger className="flex items-center">
-              <Briefcase className="mr-2" /> Tasks
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderAccordionContent('Tasks', selectedOccupation.tasks, 'tasks')}
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="knowledge">
-            <AccordionTrigger className="flex items-center">
-              <Book className="mr-2" /> Knowledge
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderAccordionContent('Knowledge', selectedOccupation.knowledge, 'knowledge')}
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="skills">
-            <AccordionTrigger className="flex items-center">
-              <Brain className="mr-2" /> Skills
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderAccordionContent('Skills', selectedOccupation.skills, 'skills')}
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="abilities">
-            <AccordionTrigger className="flex items-center">
-              <BarChart2 className="mr-2" /> Abilities
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderAccordionContent('Abilities', selectedOccupation.abilities, 'abilities')}
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="technologies">
-            <AccordionTrigger className="flex items-center">
-              <Cpu className="mr-2" /> Technologies
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderAccordionContent('Technologies', selectedOccupation.technologies, 'technologies')}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      )}
+
+        <div className={styles.sidebarContent}>
+          <TopCareers onSelect={handleOccupationSelect} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom APO Data</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-between">
+              <Button>
+                <Upload className="mr-2 h-4 w-4" /> Upload Data
+              </Button>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" /> Download Template
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      <footer className={styles.footer}>
+        © Conceptualised & presented by Ignite IT consulting
+      </footer>
     </div>
   );
 };
