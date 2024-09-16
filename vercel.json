@@ -3,11 +3,20 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "env": {
-   "ONET_USERNAME": "ONET_USERNAME",
-   "ONET_PASSWORD": "ONET_PASSWORD"
+    "ONET_USERNAME": "ONET_USERNAME",
+    "ONET_PASSWORD": "ONET_PASSWORD"
   }
 }
