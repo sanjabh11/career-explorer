@@ -13,7 +13,7 @@ exports.handler = async function(event, context) {
   console.log('Username:', process.env.ONET_USERNAME);
   console.log('Password:', process.env.ONET_PASSWORD ? '[REDACTED]' : 'Not set');
 
-  const auth = Buffer.from(`${process.env.REACT_APP_ONET_USERNAME}:${process.env.REACT_APP_ONET_PASSWORD}`).toString('base64');
+  const auth = Buffer.from(`${process.env.ONET_USERNAME}:${process.env.ONET_PASSWORD}`).toString('base64');
 
   try {
     const response = await axios.get(url, {
