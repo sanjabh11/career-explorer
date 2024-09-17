@@ -26,11 +26,7 @@
   to = "/index.html"
   status = 200
   force = false
-<<<<<<< HEAD
-
-=======
   
->>>>>>> acce53445eb1268f99b02747bfcf9beaa46f3700
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
