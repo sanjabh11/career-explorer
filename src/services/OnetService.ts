@@ -7,16 +7,12 @@ const API_BASE_URL = '/.netlify/functions/onet-proxy';
 
 export const searchOccupations = async (keyword: string): Promise<Occupation[]> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/search?keyword=${encodeURIComponent(keyword)}`, {
-      headers: {
-        'Authorization': `Basic ${Buffer.from(`${process.env.ONET_USERNAME}:${process.env.ONET_PASSWORD}`).toString('base64')}`,
-        'Accept': 'application/json'
-      }
-    });
+    const response = await axios.get(`${API_BASE_URL}?keyword=${encodeURIComponent(keyword)}`);
     console.log('Raw search response:', response.data);
-    return response.data.careers.map((career: any) => ({
-      code: career.code,
-      title: career.title
+    // Adjust this based on the actual structure of the API response
+    return response.data.occupations.map((occupation: any) => ({
+      code: occupation.code,
+      title: occupation.title
     }));
   } catch (error) {
     console.error('Error searching occupations:', error);

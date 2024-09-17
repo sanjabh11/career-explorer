@@ -4,34 +4,24 @@
   functions = "netlify/functions"
 
 [dev]
-  command = "npm start"
-  targetPort = 3000
+  command = "npm run start"
   port = 8888
+  targetPort = 3000
   publish = "build"
-  functionsPort = 9000
-
-[context.production.environment]
-  REACT_APP_ENV = "production"
-
-[context.development.environment]
-  REACT_APP_ENV = "development"
-
-[[redirects]]
-  from = "/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  jwtRolePath = "app_metadata.authorization.roles"
+  framework = "#custom"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> acce53445eb1268f99b02747bfcf9beaa46f3700
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    "Cache-Control" = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"

@@ -1,4 +1,5 @@
 {
+	"siteId": "3cd78072-169b-47d1-bd40-315d5c77e165",
 	"geolocation": {
 		"data": {
 			"city": "Chandigarh",
@@ -14,7 +15,6 @@
 			"latitude": 30.7339,
 			"longitude": 76.7889
 		},
-		"timestamp": 1726471431737
-	},
-	"siteId": "b88730dc-625d-40e9-ba7c-27df228952f6"
+		"timestamp": 1726587061201
+	}
 }
