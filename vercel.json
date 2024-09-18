@@ -9,18 +9,18 @@
       }
     },
     {
-      "src": "lib/netlify/functions/*.js",
+      "src": "netlify/functions/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/lib/netlify/functions/\\$1"
+      "dest": "/netlify/functions/\\$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/public/index.html"
     }
   ],
   "env": {
