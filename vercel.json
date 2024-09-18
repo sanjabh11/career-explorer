@@ -7,9 +7,22 @@
       "config": {
         "distDir": "build"
       }
+    },
+    {
+      "src": "netlify/functions/*.js",
+      "use": "@vercel/node"
     }
   ],
+  "functions": {
+    "api/*.js": {
+      "includeFiles": "netlify/functions/**"
+    }
+  },
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/\$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
